@@ -1,5 +1,10 @@
 # Variables for Documentation S3 Buckets Module
 
+variable "bucket_name" {
+  description = "Name of the S3 bucket to create"
+  type        = string
+}
+
 variable "aws_region" {
   description = "AWS region where the buckets will be created"
   type        = string

@@ -17,7 +17,7 @@ provider "aws" {
 
 # Staging Documentation S3 Buckets
 module "docs_buckets" {
-  source = "../modules/docs-buckets"
+  source = "../../modules/docs-buckets"
   
   environment = "staging"
   aws_region  = "us-east-2"
