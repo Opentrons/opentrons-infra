@@ -31,12 +31,13 @@ resource "aws_s3_bucket_website_configuration" "docs" {
   }
 
   error_document {
-    key = "404.html"
+    key = "/404.html"
   }
 }
 
-# Public read access policy for website hosting
+# Public read access policy for website hosting (conditional)
 resource "aws_s3_bucket_policy" "docs" {
+  count  = var.enable_public_access ? 1 : 0
   bucket = aws_s3_bucket.docs.id
 
   policy = jsonencode({
@@ -53,14 +54,14 @@ resource "aws_s3_bucket_policy" "docs" {
   })
 }
 
-# Block public access settings (required for website hosting)
+# Block public access settings (conditional)
 resource "aws_s3_bucket_public_access_block" "docs" {
   bucket = aws_s3_bucket.docs.id
 
-  block_public_acls       = false
-  block_public_policy     = false
-  ignore_public_acls      = false
-  restrict_public_buckets = false
+  block_public_acls       = var.enable_public_access ? false : true
+  block_public_policy     = var.enable_public_access ? false : true
+  ignore_public_acls      = var.enable_public_access ? false : true
+  restrict_public_buckets = var.enable_public_access ? false : true
 }
 
 # Versioning (conditional)

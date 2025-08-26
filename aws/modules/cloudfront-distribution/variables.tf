@@ -187,6 +187,12 @@ variable "minimum_protocol_version" {
   default     = "TLSv1.2_2021"
 }
 
+variable "web_acl_id" {
+  description = "WAF Web ACL ID to associate with the CloudFront distribution"
+  type        = string
+  default     = null
+}
+
 variable "s3_bucket_id" {
   description = "S3 bucket ID"
   type        = string

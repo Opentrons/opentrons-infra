@@ -25,17 +25,12 @@ output "distribution_status" {
   value       = aws_cloudfront_distribution.distribution.status
 }
 
-output "origin_access_identity_id" {
-  description = "ID of the CloudFront origin access identity"
-  value       = aws_cloudfront_origin_access_identity.oai.id
+output "origin_access_control_id" {
+  description = "ID of the CloudFront origin access control"
+  value       = aws_cloudfront_origin_access_control.oac.id
 }
 
-output "origin_access_identity_arn" {
-  description = "ARN of the CloudFront origin access identity"
-  value       = aws_cloudfront_origin_access_identity.oai.iam_arn
-}
-
-output "origin_access_identity_path" {
-  description = "Path of the CloudFront origin access identity"
-  value       = aws_cloudfront_origin_access_identity.oai.cloudfront_access_identity_path
+output "origin_access_control_name" {
+  description = "Name of the CloudFront origin access control"
+  value       = aws_cloudfront_origin_access_control.oac.name
 }

@@ -11,6 +11,15 @@ terraform {
   }
 }
 
+# CloudFront Origin Access Control
+resource "aws_cloudfront_origin_access_control" "oac" {
+  name                              = "${var.environment}-oac"
+  description                       = "OAC for ${var.environment} CloudFront distribution"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
+}
+
 # CloudFront distribution
 resource "aws_cloudfront_distribution" "distribution" {
   enabled             = var.enabled
@@ -19,15 +28,14 @@ resource "aws_cloudfront_distribution" "distribution" {
   default_root_object = var.default_root_object
   price_class         = var.price_class
   aliases             = var.aliases
+  web_acl_id          = var.web_acl_id
 
   # Origin configuration
   origin {
     domain_name = var.origin_domain_name
     origin_id   = var.origin_id
 
-    s3_origin_config {
-      origin_access_identity = aws_cloudfront_origin_access_identity.oai.cloudfront_access_identity_path
-    }
+    origin_access_control_id = aws_cloudfront_origin_access_control.oac.id
 
     custom_header {
       name  = "User-Agent"
@@ -98,12 +106,7 @@ resource "aws_cloudfront_distribution" "distribution" {
   }, var.tags)
 }
 
-# CloudFront Origin Access Identity
-resource "aws_cloudfront_origin_access_identity" "oai" {
-  comment = "OAI for ${var.environment} CloudFront distribution"
-}
-
-# S3 bucket policy to allow CloudFront access
+# S3 bucket policy to allow CloudFront access only
 resource "aws_s3_bucket_policy" "cloudfront_access" {
   bucket = var.s3_bucket_id
 
@@ -114,10 +117,15 @@ resource "aws_s3_bucket_policy" "cloudfront_access" {
         Sid       = "CloudFrontAccess"
         Effect    = "Allow"
         Principal = {
-          AWS = aws_cloudfront_origin_access_identity.oai.iam_arn
+          Service = "cloudfront.amazonaws.com"
         }
         Action   = "s3:GetObject"
         Resource = "${var.s3_bucket_arn}/*"
+        Condition = {
+          StringEquals = {
+            "AWS:SourceArn" = aws_cloudfront_distribution.distribution.arn
+          }
+        }
       },
     ]
   })

@@ -20,11 +20,6 @@ output "function_etag" {
   value       = aws_cloudfront_function.function.etag
 }
 
-output "function_last_modified_time" {
-  description = "Last modified time of the CloudFront function"
-  value       = aws_cloudfront_function.function.last_modified_time
-}
-
 # Outputs for function from file (if used)
 output "function_from_file_arn" {
   description = "ARN of the CloudFront function created from file"

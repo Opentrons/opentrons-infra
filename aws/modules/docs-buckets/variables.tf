@@ -20,6 +20,12 @@ variable "environment" {
   }
 }
 
+variable "enable_public_access" {
+  description = "Enable public read access to the bucket (for direct website hosting)"
+  type        = bool
+  default     = true
+}
+
 variable "enable_versioning" {
   description = "Enable versioning on the buckets"
   type        = bool
