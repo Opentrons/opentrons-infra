@@ -134,11 +134,10 @@ terraform refresh
 ### Best Practices
 
 1. **Always run `terraform plan`** before applying changes
-2. **Use workspaces** for managing multiple environments (if configured)
-3. **Review changes carefully** before applying to production
-4. **Keep state files secure** and never commit them to version control
-5. **Use consistent naming** for resources across environments
-6. **Document changes** in commit messages
+2. **Review changes carefully** before applying to production
+3. **Keep state files secure** and never commit them to version control
+4. **Use consistent naming** for resources across environments
+5. **Document changes** in commit messages
 
 ### Troubleshooting
 
