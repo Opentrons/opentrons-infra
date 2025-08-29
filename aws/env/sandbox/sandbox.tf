@@ -2,118 +2,140 @@
 # This file configures the sandbox environment for Opentrons documentation
 
 provider "aws" {
-  region  = "us-east-2"
-  profile = "robotics-protocol-library-prod-root"
+  region  = var.aws_region
+  profile = var.aws_profile
 }
 
-# Note: SSL certificate already exists and is managed outside of Terraform
-# The existing CloudFront distribution already has the certificate configured
-
-# Sandbox Documentation S3 Bucket
-# Note: This bucket already exists and will be imported
-resource "aws_s3_bucket" "docs" {
-  bucket = "sandbox.docs"
-  
-  tags = {
-    Environment = "sandbox"
-    environment = "sandbox"
+# Local values for consistent tagging
+locals {
+  common_tags = {
+    Environment = var.environment
+    environment = var.environment
     ou          = "robotics"
+    ManagedBy   = "terraform"
+    Project     = "opentrons-docs"
   }
 }
 
-# Note: S3 bucket website configuration is not enabled on the existing bucket
+# S3 Bucket using the docs-buckets module
+module "docs_bucket" {
+  source = "../../modules/docs-buckets"
 
-# Note: WAF Web ACL is not currently configured for sandbox
+  bucket_name                           = var.bucket_name
+  environment                          = var.environment
+  enable_public_access                 = false  # CloudFront only access
+  enable_versioning                    = var.enable_versioning
+  enable_lifecycle_rules               = var.enable_lifecycle_rules
+  noncurrent_version_expiration_days   = var.noncurrent_version_expiration_days
+  tags                                 = local.common_tags
+}
 
-# Note: CloudFront functions are not currently configured
+# CloudFront Distribution using the cloudfront-distribution module
+module "cloudfront_distribution" {
+  source = "../../modules/cloudfront-distribution"
 
-# CloudFront Distribution for Documentation
-# Note: This distribution already exists and will be imported
-resource "aws_cloudfront_distribution" "docs_cloudfront" {
-  # Import existing configuration - minimal config to avoid changes
-  enabled = true
-  is_ipv6_enabled = true
-  default_root_object = "index.html"
+  environment              = var.environment
+  enabled                  = true
+  is_ipv6_enabled          = true
+  comment                  = "Sandbox documentation distribution"
+  default_root_object      = "index.html"
+  price_class              = "PriceClass_100"  # Use only North America and Europe
+  aliases                  = [var.domain_name]
   
-  # Required blocks - will be imported from existing distribution
-  origin {
-    domain_name = "sandbox.docs.s3.us-east-2.amazonaws.com"
-    origin_id   = "sandbox.docs.s3.us-east-2.amazonaws.com-me2w5chhutr"
-    origin_access_control_id = "E2V32V68SQH1E3"
-  }
+  # Origin configuration
+  origin_domain_name       = "${var.bucket_name}.s3.${var.aws_region}.amazonaws.com"
+  origin_id                = "${var.bucket_name}-origin"
+  custom_user_agent        = "Opentrons-Docs-Sandbox"
   
-  default_cache_behavior {
-    allowed_methods  = ["GET", "HEAD"]
-    cached_methods   = ["GET", "HEAD"]
-    target_origin_id = "sandbox.docs.s3.us-east-2.amazonaws.com-me2w5chhutr"
-    cache_policy_id = "658327ea-f89d-4fab-a63d-7e88639e58f6"
-    compress = true
-    min_ttl = 0
-    default_ttl = 0
-    max_ttl = 0
-    viewer_protocol_policy = "redirect-to-https"
-    
-    function_association {
+  # S3 bucket configuration
+  s3_bucket_id             = module.docs_bucket.bucket_name
+  s3_bucket_arn            = module.docs_bucket.bucket_arn
+  
+  # Cache behavior
+  allowed_methods          = ["GET", "HEAD"]
+  cached_methods           = ["GET", "HEAD"]
+  forward_query_string     = false
+  forward_cookies          = "none"
+  viewer_protocol_policy   = "redirect-to-https"
+  min_ttl                  = 0
+  default_ttl              = 0
+  max_ttl                  = 0
+  compress                 = true
+  
+  # Function associations
+  function_associations = [
+    {
       event_type   = "viewer-request"
-      function_arn = "arn:aws:cloudfront::043748923082:function/indexRedirect"
+      function_arn = var.cloudfront_function_arn
     }
-  }
+  ]
   
-  custom_error_response {
-    error_code = 404
-    response_code = 404
-    response_page_path = "/edge/404.html"
-    error_caching_min_ttl = 10
-  }
-  
-  restrictions {
-    geo_restriction {
-      restriction_type = "none"
+  # Custom error responses
+  custom_error_responses = [
+    {
+      error_code            = 404
+      response_code         = 404
+      response_page_path    = "/edge/404.html"
+      error_caching_min_ttl = 10
     }
-  }
+  ]
   
-  viewer_certificate {
-    cloudfront_default_certificate = false
-    acm_certificate_arn           = "arn:aws:acm:us-east-1:043748923082:certificate/fefdb546-2e50-46fc-8781-efd96521e779"
-    ssl_support_method            = "sni-only"
-    minimum_protocol_version      = "TLSv1.2_2021"
-  }
+  # Restrictions
+  geo_restriction_type     = "none"
+  geo_restriction_locations = []
   
-  aliases = ["sandbox.docs.opentrons.com"]
+  # SSL/TLS configuration
+  use_default_certificate  = false
+  acm_certificate_arn      = var.acm_certificate_arn
+  ssl_support_method       = "sni-only"
+  minimum_protocol_version = "TLSv1.2_2021"
   
-  tags = {
+  # WAF configuration (not configured for sandbox)
+  web_acl_id = var.web_acl_id
+  
+  tags = merge(local.common_tags, {
     Name = "sandbox.docs"
-  }
+  })
 }
 
 # Outputs for sandbox environment
 output "sandbox_bucket_name" {
   description = "Sandbox documentation bucket name"
-  value       = aws_s3_bucket.docs.bucket
+  value       = module.docs_bucket.bucket_name
 }
 
 output "sandbox_bucket_arn" {
   description = "Sandbox documentation bucket ARN"
-  value       = aws_s3_bucket.docs.arn
+  value       = module.docs_bucket.bucket_arn
 }
 
-output "sandbox_website_endpoint" {
-  description = "Sandbox documentation website endpoint"
-  value       = "Website configuration not enabled"
+output "sandbox_bucket_id" {
+  description = "Sandbox documentation bucket ID"
+  value       = module.docs_bucket.bucket_name
 }
 
 output "sandbox_cloudfront_domain" {
   description = "Sandbox CloudFront distribution domain"
-  value       = aws_cloudfront_distribution.docs_cloudfront.domain_name
+  value       = module.cloudfront_distribution.distribution_domain_name
 }
 
 output "sandbox_cloudfront_id" {
   description = "Sandbox CloudFront distribution ID"
-  value       = aws_cloudfront_distribution.docs_cloudfront.id
+  value       = module.cloudfront_distribution.distribution_id
+}
+
+output "sandbox_cloudfront_arn" {
+  description = "Sandbox CloudFront distribution ARN"
+  value       = module.cloudfront_distribution.distribution_arn
 }
 
 output "sandbox_deployment_url" {
   description = "Sandbox documentation deployment URL"
-  value       = "https://sandbox.docs.opentrons.com/"
+  value       = "https://${var.domain_name}/"
+}
+
+output "sandbox_origin_access_control_id" {
+  description = "Sandbox CloudFront origin access control ID"
+  value       = module.cloudfront_distribution.origin_access_control_id
 }
 

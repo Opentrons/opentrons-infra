@@ -2,118 +2,144 @@
 # This file configures the production environment for Opentrons documentation
 
 provider "aws" {
-  region  = "us-east-2"
-  profile = "robotics-protocol-library-prod-root"
+  region  = var.aws_region
+  profile = var.aws_profile
 }
 
-# Note: SSL certificate already exists and is managed outside of Terraform
-# The existing CloudFront distribution already has the certificate configured
 
-# Production Documentation S3 Bucket
-# Note: This bucket already exists and will be imported
-resource "aws_s3_bucket" "docs" {
-  bucket = "opentrons.production.docs"
-  
-  tags = {
-    Environment = "production"
-    environment = "production"
+
+# Local values for consistent tagging
+locals {
+  common_tags = {
+    Environment = var.environment
+    environment = var.environment
     ou          = "robotics"
+    ManagedBy   = "terraform"
+    Project     = "opentrons-docs"
   }
 }
 
-# Note: S3 bucket website configuration is not enabled on the existing bucket
+# S3 Bucket using the docs-buckets module
+module "docs_bucket" {
+  source = "../../modules/docs-buckets"
 
-# Note: WAF Web ACL already exists and is managed by CloudFront
-# Note: CloudFront functions are not currently configured
+  bucket_name                           = var.bucket_name
+  environment                          = var.environment
+  enable_public_access                 = false  # CloudFront only access
+  enable_versioning                    = var.enable_versioning
+  enable_lifecycle_rules               = var.enable_lifecycle_rules
+  noncurrent_version_expiration_days   = var.noncurrent_version_expiration_days
+  tags                                 = local.common_tags
+}
 
-# CloudFront Distribution for Documentation
-# Note: This distribution already exists and will be imported
-resource "aws_cloudfront_distribution" "docs_cloudfront" {
-  # Import existing configuration - minimal config to avoid changes
-  enabled = true
-  is_ipv6_enabled = true
-  default_root_object = "index.html"
+# CloudFront Distribution using the cloudfront-distribution module
+module "cloudfront_distribution" {
+  source = "../../modules/cloudfront-distribution"
+
+  environment              = var.environment
+  enabled                  = true
+  is_ipv6_enabled          = true
+  comment                  = "Production documentation distribution"
+  default_root_object      = "index.html"
+  price_class              = "PriceClass_100"  # Use only North America and Europe
+  aliases                  = [var.domain_name]
   
-  # Required blocks - will be imported from existing distribution
-  origin {
-    domain_name = "opentrons.production.docs.s3.us-east-2.amazonaws.com"
-    origin_id   = "opentrons.production.docs.s3.us-east-2.amazonaws.com-mekji3ceiqy"
-    origin_access_control_id = "E3VB3LKZ4DM8A1"
-  }
+  # Origin configuration
+  origin_domain_name       = "${var.bucket_name}.s3.${var.aws_region}.amazonaws.com"
+  origin_id                = "${var.bucket_name}-origin"
+  custom_user_agent        = "Opentrons-Docs-Production"
   
-  default_cache_behavior {
-    allowed_methods  = ["GET", "HEAD"]
-    cached_methods   = ["GET", "HEAD"]
-    target_origin_id = "opentrons.production.docs.s3.us-east-2.amazonaws.com-mekji3ceiqy"
-    cache_policy_id = "658327ea-f89d-4fab-a63d-7e88639e58f6"
-    compress = true
-    min_ttl = 0
-    default_ttl = 0
-    max_ttl = 0
-    viewer_protocol_policy = "redirect-to-https"
-    
-    function_association {
+  # S3 bucket configuration
+  s3_bucket_id             = module.docs_bucket.bucket_name
+  s3_bucket_arn            = module.docs_bucket.bucket_arn
+  
+  # Cache behavior
+  allowed_methods          = ["GET", "HEAD"]
+  cached_methods           = ["GET", "HEAD"]
+  forward_query_string     = false
+  forward_cookies          = "none"
+  viewer_protocol_policy   = "redirect-to-https"
+  min_ttl                  = 0
+  default_ttl              = 0
+  max_ttl                  = 0
+  compress                 = true
+  
+  # Function associations
+  function_associations = [
+    {
       event_type   = "viewer-request"
-      function_arn = "arn:aws:cloudfront::043748923082:function/indexRedirect"
+      function_arn = var.cloudfront_function_arn
     }
-  }
+  ]
   
-  custom_error_response {
-    error_code = 404
-    response_code = 404
-    response_page_path = "/404.html"
-    error_caching_min_ttl = 10
-  }
-  
-  restrictions {
-    geo_restriction {
-      restriction_type = "none"
+  # Custom error responses
+  custom_error_responses = [
+    {
+      error_code            = 404
+      response_code         = 404
+      response_page_path    = "/404.html"
+      error_caching_min_ttl = 10
     }
-  }
+  ]
   
-  viewer_certificate {
-    cloudfront_default_certificate = false
-    acm_certificate_arn           = "arn:aws:acm:us-east-1:043748923082:certificate/ddb7db56-f29e-4f1f-87a3-09f9cf0fb70c"
-    ssl_support_method            = "sni-only"
-    minimum_protocol_version      = "TLSv1.2_2021"
-  }
+  # Restrictions
+  geo_restriction_type     = "none"
+  geo_restriction_locations = []
   
-  aliases = ["docs.opentrons.com"]
-  web_acl_id = "arn:aws:wafv2:us-east-1:043748923082:global/webacl/CreatedByCloudFront-d198945c/a5351067-a055-4830-8622-8a6d645910a3"
+  # SSL/TLS configuration
+  use_default_certificate  = false
+  acm_certificate_arn      = var.acm_certificate_arn
+  ssl_support_method       = "sni-only"
+  minimum_protocol_version = "TLSv1.2_2021"
   
-  tags = {
+  # WAF configuration
+  web_acl_id = var.web_acl_id
+  
+  tags = merge(local.common_tags, {
     Name = "docs.opentrons.com"
-  }
+  })
 }
+
+
 
 # Outputs for production environment
 output "production_bucket_name" {
   description = "Production documentation bucket name"
-  value       = aws_s3_bucket.docs.bucket
+  value       = module.docs_bucket.bucket_name
 }
 
 output "production_bucket_arn" {
   description = "Production documentation bucket ARN"
-  value       = aws_s3_bucket.docs.arn
+  value       = module.docs_bucket.bucket_arn
 }
 
-output "production_website_endpoint" {
-  description = "Production documentation website endpoint"
-  value       = "Website configuration not enabled"
+output "production_bucket_id" {
+  description = "Production documentation bucket ID"
+  value       = module.docs_bucket.bucket_name
 }
 
 output "production_cloudfront_domain" {
   description = "Production CloudFront distribution domain"
-  value       = aws_cloudfront_distribution.docs_cloudfront.domain_name
+  value       = module.cloudfront_distribution.distribution_domain_name
 }
 
 output "production_cloudfront_id" {
   description = "Production CloudFront distribution ID"
-  value       = aws_cloudfront_distribution.docs_cloudfront.id
+  value       = module.cloudfront_distribution.distribution_id
+}
+
+output "production_cloudfront_arn" {
+  description = "Production CloudFront distribution ARN"
+  value       = module.cloudfront_distribution.distribution_arn
 }
 
 output "production_deployment_url" {
   description = "Production documentation deployment URL"
-  value       = "https://docs.opentrons.com/"
+  value       = "https://${var.domain_name}/"
+}
+
+output "production_origin_access_control_id" {
+  description = "Production CloudFront origin access control ID"
+  value       = module.cloudfront_distribution.origin_access_control_id
 }
 

@@ -10,14 +10,6 @@ output "bucket_arn" {
   value       = aws_s3_bucket.docs.arn
 }
 
-output "website_endpoint" {
-  description = "Website endpoint for the documentation bucket"
-  value       = aws_s3_bucket_website_configuration.docs.website_endpoint
-}
 
-output "website_domain" {
-  description = "Website domain for the documentation bucket"
-  value       = aws_s3_bucket_website_configuration.docs.website_domain
-}
 
 

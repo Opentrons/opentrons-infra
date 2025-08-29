@@ -22,18 +22,7 @@ resource "aws_s3_bucket" "docs" {
   }, var.tags)
 }
 
-# Configure website hosting
-resource "aws_s3_bucket_website_configuration" "docs" {
-  bucket = aws_s3_bucket.docs.id
 
-  index_document {
-    suffix = "index.html"
-  }
-
-  error_document {
-    key = "/404.html"
-  }
-}
 
 # Public read access policy for website hosting (conditional)
 resource "aws_s3_bucket_policy" "docs" {
