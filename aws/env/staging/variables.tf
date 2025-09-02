@@ -24,10 +24,16 @@ variable "domain_name" {
   default     = "staging.docs.opentrons.com"
 }
 
-variable "bucket_name" {
-  description = "S3 bucket name for documentation"
+variable "mkdocs_bucket_name" {
+  description = "S3 bucket name for MkDocs documentation"
   type        = string
   default     = "opentrons.staging.docs"
+}
+
+variable "labware_library_bucket_name" {
+  description = "S3 bucket name for labware library"
+  type        = string
+  default     = "opentrons.staging.labware.library"
 }
 
 variable "enable_versioning" {

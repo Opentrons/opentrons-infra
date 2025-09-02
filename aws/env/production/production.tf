@@ -23,13 +23,28 @@ locals {
 module "docs_bucket" {
   source = "../../modules/docs-buckets"
 
-  bucket_name                           = var.bucket_name
+  bucket_name                           = var.mkdocs_bucket_name
   environment                          = var.environment
   enable_public_access                 = false  # CloudFront only access
   enable_versioning                    = var.enable_versioning
   enable_lifecycle_rules               = var.enable_lifecycle_rules
   noncurrent_version_expiration_days   = var.noncurrent_version_expiration_days
   tags                                 = local.common_tags
+}
+
+# Labware Library S3 Bucket using the docs-buckets module
+module "labware_library_bucket" {
+  source = "../../modules/docs-buckets"
+
+  bucket_name                           = var.labware_library_bucket_name
+  environment                          = var.environment
+  enable_public_access                 = false  # CloudFront only access
+  enable_versioning                    = var.enable_versioning
+  enable_lifecycle_rules               = var.enable_lifecycle_rules
+  noncurrent_version_expiration_days   = var.noncurrent_version_expiration_days
+  tags                                 = merge(local.common_tags, {
+    Project = "opentrons-labware-library"
+  })
 }
 
 # CloudFront Distribution using the cloudfront-distribution module
@@ -45,8 +60,8 @@ module "cloudfront_distribution" {
   aliases                  = [var.domain_name]
   
   # Origin configuration
-  origin_domain_name       = "${var.bucket_name}.s3.${var.aws_region}.amazonaws.com"
-  origin_id                = "${var.bucket_name}-origin"
+  origin_domain_name       = "${var.mkdocs_bucket_name}.s3.${var.aws_region}.amazonaws.com"
+  origin_id                = "${var.mkdocs_bucket_name}-origin"
   custom_user_agent        = "Opentrons-Docs-Production"
   
   # S3 bucket configuration
@@ -116,6 +131,16 @@ output "production_bucket_arn" {
 output "production_bucket_id" {
   description = "Production documentation bucket ID"
   value       = module.docs_bucket.bucket_name
+}
+
+output "production_labware_library_bucket_name" {
+  description = "Production labware library bucket name"
+  value       = module.labware_library_bucket.bucket_name
+}
+
+output "production_labware_library_bucket_arn" {
+  description = "Production labware library bucket ARN"
+  value       = module.labware_library_bucket.bucket_arn
 }
 
 output "production_cloudfront_domain" {

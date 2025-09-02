@@ -8,7 +8,8 @@ aws_profile = "robotics-protocol-library-prod-root"
 # Environment Configuration
 environment = "staging"
 domain_name = "staging.docs.opentrons.com"
-bucket_name = "opentrons.staging.docs"
+mkdocs_bucket_name = "opentrons.staging.docs"
+labware_library_bucket_name = "opentrons.staging.labware.library"
 
 # S3 Configuration
 enable_versioning                    = true
