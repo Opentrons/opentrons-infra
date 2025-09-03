@@ -18,10 +18,22 @@ variable "environment" {
   default     = "staging"
 }
 
+variable "project" {
+  description = "Project name (e.g., mkdocs, labware)"
+  type        = string
+  default     = "mkdocs"
+}
+
 variable "domain_name" {
   description = "Domain name for the documentation site"
   type        = string
   default     = "staging.docs.opentrons.com"
+}
+
+variable "labware_library_domain_name" {
+  description = "Domain name for the labware library site"
+  type        = string
+  default     = "staging.labware.opentrons.com"
 }
 
 variable "mkdocs_bucket_name" {
@@ -33,7 +45,7 @@ variable "mkdocs_bucket_name" {
 variable "labware_library_bucket_name" {
   description = "S3 bucket name for labware library"
   type        = string
-  default     = "opentrons.staging.labware.library"
+  default     = "opentrons.staging.labware"
 }
 
 variable "enable_versioning" {

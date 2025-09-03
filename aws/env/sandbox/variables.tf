@@ -24,7 +24,11 @@ variable "domain_name" {
   default     = "sandbox.docs.opentrons.com"
 }
 
-
+variable "bucket_name" {
+  description = "S3 bucket name for documentation"
+  type        = string
+  default     = "sandbox.docs"
+}
 
 variable "enable_versioning" {
   description = "Enable S3 bucket versioning"
@@ -60,16 +64,4 @@ variable "web_acl_id" {
   description = "WAF Web ACL ID to associate with the CloudFront distribution"
   type        = string
   default     = null
-}
-
-variable "mkdocs_bucket_name" {
-  description = "S3 bucket name for MkDocs documentation"
-  type        = string
-  default     = "sandbox.docs"
-}
-
-variable "labware_library_bucket_name" {
-  description = "S3 bucket name for labware library"
-  type        = string
-  default     = "sandbox.labware.library"
 }

@@ -21,7 +21,7 @@ locals {
 module "docs_bucket" {
   source = "../../modules/docs-buckets"
 
-  bucket_name                           = var.mkdocs_bucket_name
+  bucket_name                           = var.bucket_name
   environment                          = var.environment
   enable_public_access                 = false  # CloudFront only access
   enable_versioning                    = var.enable_versioning
@@ -30,36 +30,22 @@ module "docs_bucket" {
   tags                                 = local.common_tags
 }
 
-# Labware Library S3 Bucket using the docs-buckets module
-module "labware_library_bucket" {
-  source = "../../modules/docs-buckets"
-
-  bucket_name                           = var.labware_library_bucket_name
-  environment                          = var.environment
-  enable_public_access                 = false  # CloudFront only access
-  enable_versioning                    = var.enable_versioning
-  enable_lifecycle_rules               = var.enable_lifecycle_rules
-  noncurrent_version_expiration_days   = var.noncurrent_version_expiration_days
-  tags                                 = merge(local.common_tags, {
-    Project = "opentrons-labware-library"
-  })
-}
-
 # CloudFront Distribution using the cloudfront-distribution module
 module "cloudfront_distribution" {
   source = "../../modules/cloudfront-distribution"
 
   environment              = var.environment
+  project                  = "mkdocs"
   enabled                  = true
   is_ipv6_enabled          = true
   comment                  = "Sandbox documentation distribution"
   default_root_object      = "index.html"
   price_class              = "PriceClass_100"  # Use only North America and Europe
-  aliases                  = [var.domain_name]
+  # aliases                  = [var.domain_name]  # Temporarily commented out to avoid CNAME conflict
   
   # Origin configuration
-  origin_domain_name       = "${var.mkdocs_bucket_name}.s3.${var.aws_region}.amazonaws.com"
-  origin_id                = "${var.mkdocs_bucket_name}-origin"
+  origin_domain_name       = "${var.bucket_name}.s3.${var.aws_region}.amazonaws.com"
+  origin_id                = "${var.bucket_name}-origin"
   custom_user_agent        = "Opentrons-Docs-Sandbox"
   
   # S3 bucket configuration
@@ -113,54 +99,5 @@ module "cloudfront_distribution" {
   })
 }
 
-# Outputs for sandbox environment
-output "sandbox_bucket_name" {
-  description = "Sandbox documentation bucket name"
-  value       = module.docs_bucket.bucket_name
-}
 
-output "sandbox_bucket_arn" {
-  description = "Sandbox documentation bucket ARN"
-  value       = module.docs_bucket.bucket_arn
-}
-
-output "sandbox_bucket_id" {
-  description = "Sandbox documentation bucket ID"
-  value       = module.docs_bucket.bucket_name
-}
-
-output "sandbox_labware_library_bucket_name" {
-  description = "Sandbox labware library bucket name"
-  value       = module.labware_library_bucket.bucket_name
-}
-
-output "sandbox_labware_library_bucket_arn" {
-  description = "Sandbox labware library bucket ARN"
-  value       = module.labware_library_bucket.bucket_arn
-}
-
-output "sandbox_cloudfront_domain" {
-  description = "Sandbox CloudFront distribution domain"
-  value       = module.cloudfront_distribution.distribution_domain_name
-}
-
-output "sandbox_cloudfront_id" {
-  description = "Sandbox CloudFront distribution ID"
-  value       = module.cloudfront_distribution.distribution_id
-}
-
-output "sandbox_cloudfront_arn" {
-  description = "Sandbox CloudFront distribution ARN"
-  value       = module.cloudfront_distribution.distribution_arn
-}
-
-output "sandbox_deployment_url" {
-  description = "Sandbox documentation deployment URL"
-  value       = "https://${var.domain_name}/"
-}
-
-output "sandbox_origin_access_control_id" {
-  description = "Sandbox CloudFront origin access control ID"
-  value       = module.cloudfront_distribution.origin_access_control_id
-}
 

@@ -9,7 +9,7 @@ This directory contains the Terraform configurations for different AWS environme
 - **Domain**: `sandbox.docs.opentrons.com`
 - **S3 Buckets**:
   - `sandbox.docs` - MkDocs documentation hosting
-  - `sandbox.labware.library` - Labware library storage
+  - `sandbox.labware` - Labware library storage
 - **CloudFront**: Enabled with custom domain
 - **WAF**: Not configured
 
@@ -18,7 +18,7 @@ This directory contains the Terraform configurations for different AWS environme
 - **Domain**: `staging.docs.opentrons.com`
 - **S3 Buckets**:
   - `opentrons.staging.docs` - MkDocs documentation hosting
-  - `opentrons.staging.labware.library` - Labware library storage
+  - `opentrons.staging.labware` - Labware library storage
 - **CloudFront**: Enabled with custom domain
 - **WAF**: Not configured
 
@@ -27,7 +27,7 @@ This directory contains the Terraform configurations for different AWS environme
 - **Domain**: `docs.opentrons.com`
 - **S3 Buckets**:
   - `opentrons.production.docs` - MkDocs documentation hosting
-  - `opentrons.production.labware.library` - Labware library storage
+  - `opentrons.production.labware` - Labware library storage
 - **CloudFront**: Enabled with custom domain
 - **WAF**: Configured with Web ACL
 
@@ -35,9 +35,9 @@ This directory contains the Terraform configurations for different AWS environme
 
 New S3 buckets have been added for the labware library project across all environments:
 
-- **Sandbox**: `sandbox.labware.library`
-- **Staging**: `opentrons.staging.labware.library`
-- **Production**: `opentrons.production.labware.library`
+- **Sandbox**: `sandbox.labware`
+- **Staging**: `opentrons.staging.labware`
+- **Production**: `opentrons.production.labware`
 
 These buckets are configured with:
 - Versioning enabled
