@@ -15,27 +15,22 @@ output "sandbox_bucket_id" {
   value       = module.docs_bucket.bucket_name
 }
 
-output "sandbox_cloudfront_domain" {
-  description = "Sandbox CloudFront distribution domain"
-  value       = module.cloudfront_distribution.distribution_domain_name
+output "sandbox_labware_bucket_name" {
+  description = "Sandbox labware library bucket name"
+  value       = module.labware_library_bucket.bucket_name
 }
 
-output "sandbox_cloudfront_id" {
-  description = "Sandbox CloudFront distribution ID"
-  value       = module.cloudfront_distribution.distribution_id
+output "sandbox_labware_bucket_arn" {
+  description = "Sandbox labware library bucket ARN"
+  value       = module.labware_library_bucket.bucket_arn
 }
 
-output "sandbox_cloudfront_arn" {
-  description = "Sandbox CloudFront distribution ARN"
-  value       = module.cloudfront_distribution.distribution_arn
+output "sandbox_docs_bucket_url" {
+  description = "Sandbox documentation bucket URL"
+  value       = "https://${module.docs_bucket.bucket_name}.s3.${var.aws_region}.amazonaws.com"
 }
 
-output "sandbox_deployment_url" {
-  description = "Sandbox documentation deployment URL"
-  value       = "https://${var.domain_name}/"
-}
-
-output "sandbox_origin_access_control_id" {
-  description = "Sandbox CloudFront origin access control ID"
-  value       = module.cloudfront_distribution.origin_access_control_id
+output "sandbox_labware_bucket_url" {
+  description = "Sandbox labware library bucket URL"
+  value       = "https://${module.labware_library_bucket.bucket_name}.s3.${var.aws_region}.amazonaws.com"
 }
