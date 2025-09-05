@@ -13,8 +13,8 @@ terraform {
 
 # CloudFront Origin Access Control
 resource "aws_cloudfront_origin_access_control" "oac" {
-  name                              = "${var.environment}-oac"
-  description                       = "OAC for ${var.environment} CloudFront distribution"
+  name                              = var.origin_access_control_name != null ? var.origin_access_control_name : (var.project != null ? "${var.environment}-${var.project}-oac" : "${var.environment}-oac")
+  description                       = "OAC for ${var.environment} ${var.project != null ? var.project : ""} CloudFront distribution"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
   signing_protocol                  = "sigv4"

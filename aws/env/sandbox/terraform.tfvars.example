@@ -8,7 +8,9 @@ aws_profile = "robotics-protocol-library-prod-root"
 # Environment Configuration
 environment = "sandbox"
 domain_name = "sandbox.docs.opentrons.com"
-bucket_name = "sandbox.docs"
+labware_library_domain_name = "sandbox.labware.opentrons.com"
+mkdocs_bucket_name = "sandbox.docs"
+labware_library_bucket_name = "sandbox.labware"
 
 # S3 Configuration
 enable_versioning                    = true

@@ -30,6 +30,18 @@ variable "bucket_name" {
   default     = "sandbox.docs"
 }
 
+variable "labware_library_domain_name" {
+  description = "Domain name for the labware library site"
+  type        = string
+  default     = "sandbox.labware.opentrons.com"
+}
+
+variable "labware_library_bucket_name" {
+  description = "S3 bucket name for labware library"
+  type        = string
+  default     = "opentrons.sandbox.labware"
+}
+
 variable "enable_versioning" {
   description = "Enable S3 bucket versioning"
   type        = bool
@@ -48,20 +60,3 @@ variable "noncurrent_version_expiration_days" {
   default     = 7
 }
 
-variable "cloudfront_function_arn" {
-  description = "ARN of the CloudFront function for index redirect"
-  type        = string
-  default     = "arn:aws:cloudfront::043748923082:function/indexRedirect"
-}
-
-variable "acm_certificate_arn" {
-  description = "ARN of the ACM certificate for the domain"
-  type        = string
-  default     = "arn:aws:acm:us-east-1:043748923082:certificate/fefdb546-2e50-46fc-8781-efd96521e779"
-}
-
-variable "web_acl_id" {
-  description = "WAF Web ACL ID to associate with the CloudFront distribution"
-  type        = string
-  default     = null
-}

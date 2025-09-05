@@ -8,7 +8,9 @@ aws_profile = "robotics-protocol-library-prod-root"
 # Environment Configuration
 environment = "production"
 domain_name = "docs.opentrons.com"
-bucket_name = "opentrons.production.docs"
+labware_library_domain_name = "labware.opentrons.com"
+mkdocs_bucket_name = "opentrons.production.docs"
+labware_library_bucket_name = "opentrons.production.labware"
 
 # S3 Configuration
 enable_versioning                    = true

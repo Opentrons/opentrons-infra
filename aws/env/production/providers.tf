@@ -1,12 +1,11 @@
 provider "aws" {
-  profile = "robotics-protocol-library-prod-root"
-  alias   = "robotics-protocol-library-prod"
+  region  = var.aws_region
+  profile = var.aws_profile
+}
 
-  region = "us-east-2"
-
-  default_tags {
-    tags = {
-      ou = "robotics"
-    }
-  }
+# Provider for ACM certificates (must be in us-east-1 for CloudFront)
+provider "aws" {
+  alias   = "us_east_1"
+  region  = "us-east-1"
+  profile = var.aws_profile
 }

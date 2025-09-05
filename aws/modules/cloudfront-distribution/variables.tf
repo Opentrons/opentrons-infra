@@ -208,3 +208,15 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "project" {
+  description = "Project name for unique resource naming"
+  type        = string
+  default     = null
+}
+
+variable "origin_access_control_name" {
+  description = "Name for the Origin Access Control (must be unique within the account)"
+  type        = string
+  default     = null
+}

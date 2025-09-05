@@ -1,91 +1,80 @@
-# Opentrons Infrastructure Environments
+# AWS Environment Configuration
 
-This directory contains environment-specific Terraform configurations for the Opentrons infrastructure.
+This directory contains the Terraform configurations for different AWS environments (sandbox, staging, production) used by Opentrons.
 
-## Environment Files
+## Environments
 
-### `sandbox.tf`
-- **Purpose**: Sandbox/preview environment for testing and development
-- **Bucket**: `sandbox.docs`
-- **URL**: `http://sandbox.docs.s3-website.us-east-2.amazonaws.com/`
-- **Retention**: 7 days for noncurrent versions
-- **Use Case**: Feature branch deployments, testing new documentation
+### Sandbox
+- **Purpose**: Development and testing environment
+- **Domain**: `sandbox.docs.opentrons.com`
+- **S3 Buckets**:
+  - `sandbox.docs` - MkDocs documentation hosting
+  - `sandbox.labware` - Labware library storage
+- **CloudFront**: Enabled with custom domain
+- **WAF**: Not configured
 
-### `staging.tf`
-- **Purpose**: Staging environment for pre-production testing
-- **Bucket**: `opentrons.staging.docs`
-- **URL**: `https://staging.docs.opentrons.com/`
-- **Retention**: 14 days for noncurrent versions
-- **Use Case**: Release candidate testing, staging deployments
+### Staging
+- **Purpose**: Pre-production testing environment
+- **Domain**: `staging.docs.opentrons.com`
+- **S3 Buckets**:
+  - `opentrons.staging.docs` - MkDocs documentation hosting
+  - `opentrons.staging.labware` - Labware library storage
+- **CloudFront**: Enabled with custom domain
+- **WAF**: Not configured
 
-### `production.tf`
-- **Purpose**: Production environment for live documentation
-- **Bucket**: `opentrons.production.docs`
-- **URL**: `https://docs.opentrons.com/`
-- **Retention**: 30 days for noncurrent versions
-- **Use Case**: Live documentation hosting
+### Production
+- **Purpose**: Live production environment
+- **Domain**: `docs.opentrons.com`
+- **S3 Buckets**:
+  - `opentrons.production.docs` - MkDocs documentation hosting
+  - `opentrons.production.labware` - Labware library storage
+- **CloudFront**: Enabled with custom domain
+- **WAF**: Configured with Web ACL
+
+## Labware Library Buckets
+
+New S3 buckets have been added for the labware library project across all environments:
+
+- **Sandbox**: `sandbox.labware`
+- **Staging**: `opentrons.staging.labware`
+- **Production**: `opentrons.production.labware`
+
+These buckets are configured with:
+- Versioning enabled
+- Lifecycle rules for cleanup (7-30 days depending on environment)
+- Public access blocked (CloudFront only access)
+- Consistent tagging with `Project = "opentrons-labware-library"`
+- Same security and compliance settings as documentation buckets
+
+## Modules Used
+
+- **docs-buckets**: Creates S3 buckets with consistent configuration
+- **cloudfront-distribution**: Sets up CloudFront distributions for S3 hosting
+- **waf-web-acl**: Configures WAF rules (production only)
+- **acm-certificate**: Manages SSL certificates
+- **cloudfront-function**: Handles index redirects
+
+## Configuration
+
+Each environment has its own:
+- `variables.tf` - Environment-specific variables
+- `terraform.tfvars.example` - Example configuration values
+- `terraform.tf` - Backend and provider configuration
+- Main configuration file (e.g., `sandbox.tf`, `staging.tf`, `production.tf`)
 
 ## Usage
 
-### Deploy to Sandbox
-```bash
-cd environments
-terraform workspace select sandbox
-terraform init
-terraform plan -target=module.docs_buckets
-terraform apply -target=module.docs_buckets
-```
+1. Copy `terraform.tfvars.example` to `terraform.tfvars`
+2. Customize values as needed
+3. Run `terraform init` to initialize
+4. Run `terraform plan` to review changes
+5. Run `terraform apply` to apply changes
 
-### Deploy to Staging
-```bash
-cd environments
-terraform workspace select staging
-terraform init
-terraform plan -target=module.docs_buckets
-terraform apply -target=module.docs_buckets
-```
+## Security Features
 
-### Deploy to Production
-```bash
-cd environments
-terraform workspace select production
-terraform init
-terraform plan -target=module.docs_buckets
-terraform apply -target=module.docs_buckets
-```
-
-## Environment-Specific Settings
-
-Each environment has different configurations optimized for its purpose:
-
-| Environment | Version Retention | Lifecycle Rules | Purpose |
-|-------------|------------------|-----------------|---------|
-| Sandbox     | 7 days           | Enabled         | Testing & Development |
-| Staging     | 14 days          | Enabled         | Pre-production Testing |
-| Production  | 30 days          | Enabled         | Live Documentation |
-
-## Outputs
-
-Each environment file provides relevant outputs:
-
-- `{environment}_bucket_name` - S3 bucket name
-- `{environment}_bucket_arn` - S3 bucket ARN
-- `{environment}_website_endpoint` - S3 website endpoint
-- `{environment}_deployment_url` - Final deployment URL
-
-## Security
-
-All environments use the same security configurations:
-- Public read access for website hosting
-- Versioning enabled for rollback capability
-- Lifecycle rules for cost management
-- Proper tagging for resource tracking
-
-## Dependencies
-
-These environment files depend on the `../modules/docs-buckets` module, which provides:
-- S3 bucket creation and configuration
-- Website hosting setup
-- Public access policies
-- Versioning and lifecycle management
+- S3 buckets are private with CloudFront-only access
+- SSL/TLS encryption enforced
+- WAF protection in production
+- Consistent tagging for resource management
+- Lifecycle rules for cost optimization
 
