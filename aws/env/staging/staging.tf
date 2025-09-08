@@ -56,7 +56,7 @@ module "cloudfront_distribution" {
   comment                  = "Staging documentation distribution"
   default_root_object      = "index.html"
   price_class              = "PriceClass_100"  # Use only North America and Europe
-  # aliases                  = [var.domain_name]  # Temporarily commented out to avoid CNAME conflict
+  aliases                  = [var.domain_name]
   
   # Origin configuration
   origin_domain_name       = "${var.mkdocs_bucket_name}.s3.${var.aws_region}.amazonaws.com"
