@@ -72,11 +72,6 @@ variable "cloudfront_function_arn" {
   default     = "arn:aws:cloudfront::043748923082:function/indexRedirect"
 }
 
-variable "acm_certificate_arn" {
-  description = "ARN of the ACM certificate for the domain"
-  type        = string
-  default     = "arn:aws:acm:us-east-1:043748923082:certificate/5edbb417-cdbd-4fbc-8f19-18fbc169c531"
-}
 
 variable "web_acl_id" {
   description = "WAF Web ACL ID to associate with the CloudFront distribution"

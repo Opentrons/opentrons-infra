@@ -6,6 +6,12 @@ provider "aws" {
   profile = var.aws_profile
 }
 
+provider "aws" {
+  alias   = "us_east_1"
+  region  = "us-east-1"
+  profile = var.aws_profile
+}
+
 # Local values for consistent tagging
 locals {
   common_tags = {
@@ -15,6 +21,62 @@ locals {
     ManagedBy   = "terraform"
     Project     = "opentrons-docs"
   }
+}
+
+# Hosted Zone for MkDocs (delegated subdomain)
+resource "aws_route53_zone" "mkdocs" {
+  name = var.domain_name
+  
+  tags = merge(local.common_tags, {
+    Name = "mkdocs-zone"
+    Project = "opentrons-docs"
+  })
+}
+
+# ACM Certificate for MkDocs
+module "mkdocs_certificate" {
+  source = "../../modules/acm-certificate"
+
+  environment    = var.environment
+  domain_name    = var.domain_name
+  route53_zone_id = aws_route53_zone.mkdocs.zone_id
+  tags = merge(local.common_tags, {
+    Project = "opentrons-docs"
+  })
+  
+  providers = {
+    aws = aws.us_east_1
+  }
+  
+  depends_on = [aws_route53_zone.mkdocs]
+}
+
+# Hosted Zone for Labware Library (delegated subdomain)
+resource "aws_route53_zone" "labware_library" {
+  name = var.labware_library_domain_name
+  
+  tags = merge(local.common_tags, {
+    Name = "labware-library-zone"
+    Project = "opentrons-labware-library"
+  })
+}
+
+# ACM Certificate for Labware Library
+module "labware_certificate" {
+  source = "../../modules/acm-certificate"
+
+  environment    = var.environment
+  domain_name    = var.labware_library_domain_name
+  route53_zone_id = aws_route53_zone.labware_library.zone_id
+  tags = merge(local.common_tags, {
+    Project = "opentrons-labware-library"
+  })
+  
+  providers = {
+    aws = aws.us_east_1
+  }
+  
+  depends_on = [aws_route53_zone.labware_library]
 }
 
 # S3 Bucket using the docs-buckets module
@@ -102,7 +164,7 @@ module "cloudfront_distribution" {
   
   # SSL/TLS configuration
   use_default_certificate  = false
-  acm_certificate_arn      = var.acm_certificate_arn
+  acm_certificate_arn      = module.mkdocs_certificate.certificate_arn
   ssl_support_method       = "sni-only"
   minimum_protocol_version = "TLSv1.2_2021"
   
@@ -112,6 +174,8 @@ module "cloudfront_distribution" {
   tags = merge(local.common_tags, {
     Name = "staging.docs.opentrons.com"
   })
+  
+  depends_on = [module.mkdocs_certificate, module.docs_bucket, aws_route53_zone.mkdocs]
 }
 
 # CloudFront Distribution for Labware Library using the cloudfront-distribution module
@@ -171,7 +235,7 @@ module "labware_library_cloudfront_distribution" {
   
   # SSL/TLS configuration
   use_default_certificate  = false
-  acm_certificate_arn      = var.acm_certificate_arn
+  acm_certificate_arn      = module.labware_certificate.certificate_arn
   ssl_support_method       = "sni-only"
   minimum_protocol_version = "TLSv1.2_2021"
   
@@ -181,6 +245,8 @@ module "labware_library_cloudfront_distribution" {
   tags = merge(local.common_tags, {
     Name = "staging.labware.opentrons.com"
   })
+  
+  depends_on = [module.labware_certificate, module.labware_library_bucket, aws_route53_zone.labware_library]
 }
 
 
