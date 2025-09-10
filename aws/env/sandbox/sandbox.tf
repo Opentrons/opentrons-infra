@@ -47,6 +47,140 @@ module "labware_library_bucket" {
   })
 }
 
+# CloudFront Distribution for MkDocs using the cloudfront-distribution module
+module "docs_cloudfront_distribution" {
+  source = "../../modules/cloudfront-distribution"
+
+  environment              = var.environment
+  project                  = "mkdocs"
+  enabled                  = true
+  is_ipv6_enabled          = true
+  comment                  = "Sandbox documentation distribution"
+  default_root_object      = "index.html"
+  price_class              = "PriceClass_100"  # Use only North America and Europe
+  # No aliases - use default CloudFront domain
+  
+  origin_domain_name       = "${var.bucket_name}.s3.${var.aws_region}.amazonaws.com"
+  origin_id                = "${var.bucket_name}-origin"
+  custom_user_agent        = "Opentrons-Docs-Sandbox"
+  
+  # S3 bucket configuration
+  s3_bucket_id             = module.docs_bucket.bucket_name
+  s3_bucket_arn            = module.docs_bucket.bucket_arn
+  
+  # Cache behavior - caching disabled for sandbox
+  allowed_methods          = ["GET", "HEAD"]
+  cached_methods           = ["GET", "HEAD"]
+  forward_query_string     = true
+  forward_cookies          = "all"
+  viewer_protocol_policy   = "redirect-to-https"
+  min_ttl                  = 0
+  default_ttl              = 0
+  max_ttl                  = 0
+  compress                 = true
+  
+  function_associations = [
+    {
+      event_type   = "viewer-request"
+      function_arn = var.cloudfront_function_arn
+    }
+  ]
+  
+  custom_error_responses = [
+    {
+      error_code            = 404
+      response_code         = 404
+      response_page_path    = "/404.html"
+      error_caching_min_ttl = 10
+    }
+  ]
+  
+  # Restrictions
+  geo_restriction_type     = "none"
+  geo_restriction_locations = []
+  
+  # SSL/TLS configuration - use default CloudFront certificate
+  use_default_certificate  = true
+  ssl_support_method       = "sni-only"
+  minimum_protocol_version = "TLSv1.2_2021"
+  
+  # WAF configuration (not configured for sandbox)
+  web_acl_id = var.web_acl_id
+  
+  tags = merge(local.common_tags, {
+    Name = "sandbox-docs"
+  })
+  
+  depends_on = [module.docs_bucket]
+}
+
+# CloudFront Distribution for Labware Library using the cloudfront-distribution module
+module "labware_library_cloudfront_distribution" {
+  source = "../../modules/cloudfront-distribution"
+
+  environment              = var.environment
+  project                  = "labware"
+  enabled                  = true
+  is_ipv6_enabled          = true
+  comment                  = "Sandbox labware library distribution"
+  default_root_object      = "index.html"
+  price_class              = "PriceClass_100"  # Use only North America and Europe
+  # No aliases - use default CloudFront domain
+  
+  origin_domain_name       = "${var.labware_library_bucket_name}.s3.${var.aws_region}.amazonaws.com"
+  origin_id                = "${var.labware_library_bucket_name}-origin"
+  custom_user_agent        = "Opentrons-Labware-Library-Sandbox"
+  
+  # S3 bucket configuration
+  s3_bucket_id             = module.labware_library_bucket.bucket_name
+  s3_bucket_arn            = module.labware_library_bucket.bucket_arn
+  
+  # Cache behavior - caching disabled for sandbox
+  allowed_methods          = ["GET", "HEAD"]
+  cached_methods           = ["GET", "HEAD"]
+  forward_query_string     = true
+  forward_cookies          = "all"
+  viewer_protocol_policy   = "redirect-to-https"
+  min_ttl                  = 0
+  default_ttl              = 0
+  max_ttl                  = 0
+  compress                 = true
+  
+  function_associations = [
+    {
+      event_type   = "viewer-request"
+      function_arn = var.cloudfront_function_arn
+    }
+  ]
+  
+  custom_error_responses = [
+    {
+      error_code            = 404
+      response_code         = 404
+      response_page_path    = "/404.html"
+      error_caching_min_ttl = 10
+    }
+  ]
+  
+  # Restrictions
+  geo_restriction_type     = "none"
+  geo_restriction_locations = []
+  
+  # SSL/TLS configuration - use default CloudFront certificate
+  use_default_certificate  = true
+  ssl_support_method       = "sni-only"
+  minimum_protocol_version = "TLSv1.2_2021"
+  
+  # WAF configuration (not configured for sandbox)
+  web_acl_id = var.web_acl_id
+  
+  tags = merge(local.common_tags, {
+    Name = "sandbox-labware"
+  })
+  
+  depends_on = [module.labware_library_bucket]
+}
+
 
 
 
