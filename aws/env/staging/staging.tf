@@ -79,6 +79,34 @@ module "labware_certificate" {
   depends_on = [aws_route53_zone.labware_library]
 }
 
+# Hosted Zone for Protocol Designer (delegated subdomain)
+resource "aws_route53_zone" "protocol_designer" {
+  name = var.protocol_designer_domain_name
+  
+  tags = merge(local.common_tags, {
+    Name = "protocol-designer-zone"
+    Project = "opentrons-protocol-designer"
+  })
+}
+
+# ACM Certificate for Protocol Designer
+module "protocol_designer_certificate" {
+  source = "../../modules/acm-certificate"
+
+  environment    = var.environment
+  domain_name    = var.protocol_designer_domain_name
+  route53_zone_id = aws_route53_zone.protocol_designer.zone_id
+  tags = merge(local.common_tags, {
+    Project = "opentrons-protocol-designer"
+  })
+  
+  providers = {
+    aws = aws.us_east_1
+  }
+  
+  depends_on = [aws_route53_zone.protocol_designer]
+}
+
 # S3 Bucket using the docs-buckets module
 module "docs_bucket" {
   source = "../../modules/docs-buckets"
@@ -107,8 +135,23 @@ module "labware_library_bucket" {
   })
 }
 
+# Protocol Designer S3 Bucket using the docs-buckets module
+module "protocol_designer_bucket" {
+  source = "../../modules/docs-buckets"
+
+  bucket_name                           = var.protocol_designer_bucket_name
+  environment                          = var.environment
+  enable_public_access                 = false  # CloudFront only access
+  enable_versioning                    = var.enable_versioning
+  enable_lifecycle_rules               = var.enable_lifecycle_rules
+  noncurrent_version_expiration_days   = var.noncurrent_version_expiration_days
+  tags                                 = merge(local.common_tags, {
+    Project = "opentrons-protocol-designer"
+  })
+}
+
 # CloudFront Distribution using the cloudfront-distribution module
-module "cloudfront_distribution" {
+module "docs_cloudfront_distribution" {
   source = "../../modules/cloudfront-distribution"
 
   environment              = var.environment
@@ -247,6 +290,77 @@ module "labware_library_cloudfront_distribution" {
   })
   
   depends_on = [module.labware_certificate, module.labware_library_bucket, aws_route53_zone.labware_library]
+}
+
+# CloudFront Distribution for Protocol Designer using the cloudfront-distribution module
+module "protocol_designer_cloudfront_distribution" {
+  source = "../../modules/cloudfront-distribution"
+
+  environment              = var.environment
+  project                  = "designer"
+  enabled                  = true
+  is_ipv6_enabled          = true
+  comment                  = "Staging protocol designer distribution"
+  default_root_object      = "index.html"
+  price_class              = "PriceClass_100"  # Use only North America and Europe
+  aliases                  = [var.protocol_designer_domain_name]
+  
+  # Origin configuration
+  origin_domain_name       = "${var.protocol_designer_bucket_name}.s3.${var.aws_region}.amazonaws.com"
+  origin_id                = "${var.protocol_designer_bucket_name}-origin"
+  custom_user_agent        = "Opentrons-Protocol-Designer-Staging"
+  
+  # S3 bucket configuration
+  s3_bucket_id             = module.protocol_designer_bucket.bucket_name
+  s3_bucket_arn            = module.protocol_designer_bucket.bucket_arn
+  
+  # Cache behavior
+  allowed_methods          = ["GET", "HEAD"]
+  cached_methods           = ["GET", "HEAD"]
+  forward_query_string     = false
+  forward_cookies          = "none"
+  viewer_protocol_policy   = "redirect-to-https"
+  min_ttl                  = 0
+  default_ttl              = 0
+  max_ttl                  = 0
+  compress                 = true
+  
+  # Function associations
+  function_associations = [
+    {
+      event_type   = "viewer-request"
+      function_arn = var.cloudfront_function_arn
+    }
+  ]
+  
+  # Custom error responses
+  custom_error_responses = [
+    {
+      error_code            = 404
+      response_code         = 404
+      response_page_path    = "/404.html"
+      error_caching_min_ttl = 10
+    }
+  ]
+  
+  # Restrictions
+  geo_restriction_type     = "none"
+  geo_restriction_locations = []
+  
+  # SSL/TLS configuration
+  use_default_certificate  = false
+  acm_certificate_arn      = module.protocol_designer_certificate.certificate_arn
+  ssl_support_method       = "sni-only"
+  minimum_protocol_version = "TLSv1.2_2021"
+  
+  # WAF configuration (not configured for staging)
+  web_acl_id = var.web_acl_id
+  
+  tags = merge(local.common_tags, {
+    Name = "staging.designer.opentrons.com"
+  })
+  
+  depends_on = [module.protocol_designer_certificate, module.protocol_designer_bucket, aws_route53_zone.protocol_designer]
 }
 
 

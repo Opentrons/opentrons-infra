@@ -48,6 +48,18 @@ variable "labware_library_bucket_name" {
   default     = "opentrons.production.labware"
 }
 
+variable "protocol_designer_domain_name" {
+  description = "Domain name for the protocol designer site"
+  type        = string
+  default     = "designer.opentrons.com"
+}
+
+variable "protocol_designer_bucket_name" {
+  description = "S3 bucket name for protocol designer"
+  type        = string
+  default     = "designer.opentrons.com"
+}
+
 variable "enable_versioning" {
   description = "Enable S3 bucket versioning"
   type        = bool

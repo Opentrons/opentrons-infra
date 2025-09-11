@@ -69,3 +69,18 @@ output "sandbox_labware_cloudfront_url" {
   description = "Sandbox labware library CloudFront URL"
   value       = "https://${module.labware_library_cloudfront_distribution.distribution_domain_name}"
 }
+
+output "sandbox_protocol_designer_bucket_name" {
+  description = "Sandbox protocol designer bucket name"
+  value       = module.protocol_designer_bucket.bucket_name
+}
+
+output "sandbox_protocol_designer_bucket_arn" {
+  description = "Sandbox protocol designer bucket ARN"
+  value       = module.protocol_designer_bucket.bucket_arn
+}
+
+output "sandbox_protocol_designer_bucket_url" {
+  description = "Sandbox protocol designer bucket URL"
+  value       = "https://${module.protocol_designer_bucket.bucket_name}.s3.${var.aws_region}.amazonaws.com"
+}

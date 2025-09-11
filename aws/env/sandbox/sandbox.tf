@@ -47,6 +47,21 @@ module "labware_library_bucket" {
   })
 }
 
+# S3 Bucket for Protocol Designer using the docs-buckets module
+module "protocol_designer_bucket" {
+  source = "../../modules/docs-buckets"
+
+  bucket_name                           = var.protocol_designer_bucket_name
+  environment                          = var.environment
+  enable_public_access                 = false  # CloudFront only access
+  enable_versioning                    = var.enable_versioning
+  enable_lifecycle_rules               = var.enable_lifecycle_rules
+  noncurrent_version_expiration_days   = var.noncurrent_version_expiration_days
+  tags                                 = merge(local.common_tags, {
+    Project = "opentrons-protocol-designer"
+  })
+}
+
 # CloudFront Distribution for MkDocs using the cloudfront-distribution module
 module "docs_cloudfront_distribution" {
   source = "../../modules/cloudfront-distribution"
