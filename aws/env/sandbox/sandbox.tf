@@ -55,14 +55,14 @@ module "docs_cloudfront_distribution" {
   project                  = "mkdocs"
   enabled                  = true
   is_ipv6_enabled          = true
-  comment                  = "Sandbox documentation distribution"
+  comment                  = ""  # Match existing empty comment
   default_root_object      = "index.html"
   price_class              = "PriceClass_100"  # Use only North America and Europe
-  # No aliases - use default CloudFront domain
+  aliases                  = [var.domain_name]  # Match existing alias
   
   origin_domain_name       = "${var.bucket_name}.s3.${var.aws_region}.amazonaws.com"
-  origin_id                = "${var.bucket_name}-origin"
-  custom_user_agent        = "Opentrons-Docs-Sandbox"
+  origin_id                = "${var.bucket_name}.s3.${var.aws_region}.amazonaws.com-mfebxihrkqr"  # Match existing origin ID
+  custom_user_agent        = ""  # No custom user agent to match existing
   
   # S3 bucket configuration
   s3_bucket_id             = module.docs_bucket.bucket_name
@@ -71,45 +71,44 @@ module "docs_cloudfront_distribution" {
   # Cache behavior - caching disabled for sandbox
   allowed_methods          = ["GET", "HEAD"]
   cached_methods           = ["GET", "HEAD"]
-  forward_query_string     = true
-  forward_cookies          = "all"
   viewer_protocol_policy   = "redirect-to-https"
-  min_ttl                  = 0
-  default_ttl              = 0
-  max_ttl                  = 0
   compress                 = true
+  forward_query_string     = true   # Disable caching by forwarding query strings
+  forward_cookies          = "all"  # Disable caching by forwarding all cookies
+  min_ttl                  = 0      # Disable caching
+  default_ttl              = 0      # Disable caching
+  max_ttl                  = 0      # Disable caching
   
   function_associations = [
     {
       event_type   = "viewer-request"
-      function_arn = var.cloudfront_function_arn
+      function_arn = "arn:aws:cloudfront::043748923082:function/sandboxRedirect"  # Match existing function
     }
   ]
   
-  custom_error_responses = [
-    {
-      error_code            = 404
-      response_code         = 404
-      response_page_path    = "/404.html"
-      error_caching_min_ttl = 10
-    }
-  ]
+  # No custom error responses to match existing
   
   # Restrictions
   geo_restriction_type     = "none"
   geo_restriction_locations = []
   
-  # SSL/TLS configuration - use default CloudFront certificate
-  use_default_certificate  = true
+  # SSL/TLS configuration - use existing ACM certificate
+  use_default_certificate  = false
+  acm_certificate_arn      = "arn:aws:acm:us-east-1:043748923082:certificate/fefdb546-2e50-46fc-8781-efd96521e779"
   ssl_support_method       = "sni-only"
   minimum_protocol_version = "TLSv1.2_2021"
   
   # WAF configuration (not configured for sandbox)
   web_acl_id = var.web_acl_id
   
-  tags = merge(local.common_tags, {
-    Name = "sandbox-docs"
-  })
+  # OAC configuration to match existing
+  origin_access_control_name = "oac-sandbox.docs.s3.us-east-2.amazonaws.com-mfebxx2y3dv"
+  origin_access_control_description = "Created by CloudFront"
+  
+  # Tags to match existing distribution
+  tags = {
+    Name = "sandbox.docs.opentrons.com"
+  }
   
   depends_on = [module.docs_bucket]
 }

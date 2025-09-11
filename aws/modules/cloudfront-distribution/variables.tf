@@ -56,9 +56,9 @@ variable "origin_id" {
 }
 
 variable "custom_user_agent" {
-  description = "Custom User-Agent header value"
+  description = "Custom User-Agent header value (set to empty string to disable)"
   type        = string
-  default     = "CloudFront-1"
+  default     = ""
 }
 
 variable "allowed_methods" {
@@ -217,6 +217,12 @@ variable "project" {
 
 variable "origin_access_control_name" {
   description = "Name for the Origin Access Control (must be unique within the account)"
+  type        = string
+  default     = null
+}
+
+variable "origin_access_control_description" {
+  description = "Description for the Origin Access Control"
   type        = string
   default     = null
 }

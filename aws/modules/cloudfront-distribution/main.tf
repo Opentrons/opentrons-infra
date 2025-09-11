@@ -14,7 +14,7 @@ terraform {
 # CloudFront Origin Access Control
 resource "aws_cloudfront_origin_access_control" "oac" {
   name                              = var.origin_access_control_name != null ? var.origin_access_control_name : (var.project != null ? "${var.environment}-${var.project}-oac" : "${var.environment}-oac")
-  description                       = "OAC for ${var.environment} ${var.project != null ? var.project : ""} CloudFront distribution"
+  description                       = var.origin_access_control_description != null ? var.origin_access_control_description : "OAC for ${var.environment} ${var.project != null ? var.project : ""} CloudFront distribution"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
   signing_protocol                  = "sigv4"
@@ -37,9 +37,12 @@ resource "aws_cloudfront_distribution" "distribution" {
 
     origin_access_control_id = aws_cloudfront_origin_access_control.oac.id
 
-    custom_header {
-      name  = "User-Agent"
-      value = var.custom_user_agent
+    dynamic "custom_header" {
+      for_each = var.custom_user_agent != "" ? [1] : []
+      content {
+        name  = "User-Agent"
+        value = var.custom_user_agent
+      }
     }
   }
 
@@ -99,11 +102,7 @@ resource "aws_cloudfront_distribution" "distribution" {
     minimum_protocol_version      = var.minimum_protocol_version
   }
 
-  tags = merge({
-    Name        = "${var.environment}-cloudfront"
-    Environment = var.environment
-    ManagedBy   = "terraform"
-  }, var.tags)
+  tags = var.tags
 }
 
 # S3 bucket policy to allow CloudFront access only
