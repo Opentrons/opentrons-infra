@@ -60,3 +60,15 @@ variable "noncurrent_version_expiration_days" {
   default     = 7
 }
 
+variable "cloudfront_function_arn" {
+  description = "ARN of the CloudFront function for index redirect"
+  type        = string
+  default     = "arn:aws:cloudfront::043748923082:function/indexRedirect"
+}
+
+variable "web_acl_id" {
+  description = "WAF Web ACL ID to associate with the CloudFront distribution"
+  type        = string
+  default     = null
+}
+
