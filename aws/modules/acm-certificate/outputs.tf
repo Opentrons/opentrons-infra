@@ -22,5 +22,5 @@ output "certificate_status" {
 
 output "certificate_validation_status" {
   description = "Status of the certificate validation"
-  value       = aws_acm_certificate_validation.cert.certificate_arn
+  value       = var.create_validation ? aws_acm_certificate_validation.cert[0].certificate_arn : null
 }

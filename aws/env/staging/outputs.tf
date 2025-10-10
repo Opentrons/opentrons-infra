@@ -105,17 +105,17 @@ output "staging_protocol_designer_deployment_url" {
   value       = "https://${var.protocol_designer_domain_name}/"
 }
 
-output "staging_protocol_designer_certificate_arn" {
-  description = "Staging protocol designer ACM certificate ARN"
-  value       = module.protocol_designer_certificate.certificate_arn
-}
+# output "staging_protocol_designer_certificate_arn" {
+#   description = "Staging protocol designer ACM certificate ARN"
+#   value       = module.protocol_designer_certificate.certificate_arn
+# }
 
 output "staging_protocol_designer_zone_id" {
   description = "Staging protocol designer hosted zone ID"
-  value       = aws_route53_zone.protocol_designer.zone_id
+  value       = data.aws_route53_zone.protocol_designer.zone_id
 }
 
 output "staging_protocol_designer_nameservers" {
   description = "Staging protocol designer nameservers for delegation"
-  value       = aws_route53_zone.protocol_designer.name_servers
+  value       = data.aws_route53_zone.protocol_designer.name_servers
 }

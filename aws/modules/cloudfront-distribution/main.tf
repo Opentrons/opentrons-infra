@@ -98,8 +98,8 @@ resource "aws_cloudfront_distribution" "distribution" {
   viewer_certificate {
     cloudfront_default_certificate = var.use_default_certificate
     acm_certificate_arn           = var.acm_certificate_arn
-    ssl_support_method            = var.ssl_support_method
-    minimum_protocol_version      = var.minimum_protocol_version
+    ssl_support_method            = var.use_default_certificate ? null : var.ssl_support_method
+    minimum_protocol_version      = var.use_default_certificate ? null : var.minimum_protocol_version
   }
 
   tags = var.tags
@@ -107,6 +107,7 @@ resource "aws_cloudfront_distribution" "distribution" {
 
 # S3 bucket policy to allow CloudFront access only
 resource "aws_s3_bucket_policy" "cloudfront_access" {
+  count  = var.create_s3_bucket_policy ? 1 : 0
   bucket = var.s3_bucket_id
 
   policy = jsonencode({

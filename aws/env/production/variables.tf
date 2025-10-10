@@ -57,7 +57,7 @@ variable "protocol_designer_domain_name" {
 variable "protocol_designer_bucket_name" {
   description = "S3 bucket name for protocol designer"
   type        = string
-  default     = "designer.opentrons.com"
+  default     = "opentrons.production.designer"
 }
 
 variable "enable_versioning" {

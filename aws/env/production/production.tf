@@ -28,6 +28,7 @@ module "mkdocs_certificate" {
   environment    = var.environment
   domain_name    = var.domain_name
   route53_zone_id = aws_route53_zone.mkdocs.zone_id
+  create_validation = false  # Disable validation for existing certificate
   tags = merge(local.common_tags, {
     Project = "opentrons-docs"
   })
@@ -56,6 +57,7 @@ module "labware_certificate" {
   environment    = var.environment
   domain_name    = var.labware_library_domain_name
   route53_zone_id = aws_route53_zone.labware_library.zone_id
+  create_validation = false  # Disable validation for existing certificate
   tags = merge(local.common_tags, {
     Project = "opentrons-labware-library"
   })
@@ -83,10 +85,14 @@ module "protocol_designer_certificate" {
 
   environment    = var.environment
   domain_name    = var.protocol_designer_domain_name
+  subject_alternative_names = ["*.designer.opentrons.com", "www.designer.opentrons.com"]
   route53_zone_id = aws_route53_zone.protocol_designer.zone_id
-  tags = merge(local.common_tags, {
-    Project = "opentrons-protocol-designer"
-  })
+  create_validation = false  # Disable validation for existing certificate
+  tags = {
+    Environment = "prod"
+    Name = "designer.opentrons.com"
+    ou = "robotics"
+  }
   
   providers = {
     aws = aws.us_east_1
@@ -97,10 +103,11 @@ module "protocol_designer_certificate" {
 
 
 # S3 Bucket for MkDocs documentation using the docs-buckets module
-module "docs_bucket" {
+  module "docs_bucket" {
   source = "../../modules/docs-buckets"
 
   bucket_name                           = var.mkdocs_bucket_name
+  resource_name                         = "docs"
   environment                          = var.environment
   enable_public_access                 = false  # CloudFront only access
   enable_versioning                    = var.enable_versioning
@@ -116,6 +123,7 @@ module "labware_library_bucket" {
   source = "../../modules/docs-buckets"
 
   bucket_name                           = var.labware_library_bucket_name
+  resource_name                         = "labware"
   environment                          = var.environment
   enable_public_access                 = false  # CloudFront only access
   enable_versioning                    = var.enable_versioning
@@ -131,6 +139,7 @@ module "protocol_designer_bucket" {
   source = "../../modules/docs-buckets"
 
   bucket_name                           = var.protocol_designer_bucket_name
+  resource_name                         = "designer"
   environment                          = var.environment
   enable_public_access                 = false  # CloudFront only access
   enable_versioning                    = var.enable_versioning
@@ -288,7 +297,7 @@ module "protocol_designer_cloudfront_distribution" {
   comment                  = "Production protocol designer distribution"
   default_root_object      = "index.html"
   price_class              = "PriceClass_100"  # Use only North America and Europe
-  aliases                  = [var.protocol_designer_domain_name]
+  # No aliases - use default CloudFront domain
   
   origin_domain_name       = "${var.protocol_designer_bucket_name}.s3.${var.aws_region}.amazonaws.com"
   origin_id                = "${var.protocol_designer_bucket_name}-origin"

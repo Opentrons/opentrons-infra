@@ -31,13 +31,13 @@ resource "aws_acm_certificate" "cert" {
 
 # Certificate validation records
 resource "aws_route53_record" "validation" {
-  for_each = {
+  for_each = var.create_validation ? {
     for dvo in aws_acm_certificate.cert.domain_validation_options : dvo.domain_name => {
       name   = dvo.resource_record_name
       record = dvo.resource_record_value
       type   = dvo.resource_record_type
     }
-  }
+  } : {}
 
   allow_overwrite = true
   name            = each.value.name
@@ -49,6 +49,8 @@ resource "aws_route53_record" "validation" {
 
 # Certificate validation
 resource "aws_acm_certificate_validation" "cert" {
+  count = var.create_validation ? 1 : 0
+  
   certificate_arn         = aws_acm_certificate.cert.arn
-  validation_record_fqdns = [for record in aws_route53_record.validation : record.fqdn]
+  validation_record_fqdns = var.create_validation ? [for record in aws_route53_record.validation : record.fqdn] : []
 }
