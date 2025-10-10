@@ -12,11 +12,11 @@ terraform {
 }
 
 # Documentation bucket
-resource "aws_s3_bucket" "docs" {
+resource "aws_s3_bucket" "bucket" {
   bucket = var.bucket_name
   
   tags = merge({
-    Name        = "${var.environment}-docs"
+    Name        = "${var.environment}-${var.resource_name}"
     Environment = var.environment
     ManagedBy   = "terraform"
   }, var.tags)
@@ -25,9 +25,9 @@ resource "aws_s3_bucket" "docs" {
 
 
 # Public read access policy for website hosting (conditional)
-resource "aws_s3_bucket_policy" "docs" {
+resource "aws_s3_bucket_policy" "bucket" {
   count  = var.enable_public_access ? 1 : 0
-  bucket = aws_s3_bucket.docs.id
+  bucket = aws_s3_bucket.bucket.id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -37,15 +37,15 @@ resource "aws_s3_bucket_policy" "docs" {
         Effect    = "Allow"
         Principal = "*"
         Action    = "s3:GetObject"
-        Resource  = "${aws_s3_bucket.docs.arn}/*"
+        Resource  = "${aws_s3_bucket.bucket.arn}/*"
       },
     ]
   })
 }
 
 # Block public access settings (conditional)
-resource "aws_s3_bucket_public_access_block" "docs" {
-  bucket = aws_s3_bucket.docs.id
+resource "aws_s3_bucket_public_access_block" "bucket" {
+  bucket = aws_s3_bucket.bucket.id
 
   block_public_acls       = var.enable_public_access ? false : true
   block_public_policy     = var.enable_public_access ? false : true
@@ -54,18 +54,19 @@ resource "aws_s3_bucket_public_access_block" "docs" {
 }
 
 # Versioning (conditional)
-resource "aws_s3_bucket_versioning" "docs" {
+resource "aws_s3_bucket_versioning" "bucket" {
   count  = var.enable_versioning ? 1 : 0
-  bucket = aws_s3_bucket.docs.id
+  bucket = aws_s3_bucket.bucket.id
   versioning_configuration {
-    status = "Enabled"
+    status     = "Enabled"
+    mfa_delete = "Disabled"
   }
 }
 
 # Lifecycle rules for cleanup (conditional)
-resource "aws_s3_bucket_lifecycle_configuration" "docs" {
+resource "aws_s3_bucket_lifecycle_configuration" "bucket" {
   count  = var.enable_lifecycle_rules ? 1 : 0
-  bucket = aws_s3_bucket.docs.id
+  bucket = aws_s3_bucket.bucket.id
 
   rule {
     id     = "cleanup_old_versions"

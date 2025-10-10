@@ -26,3 +26,9 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "create_validation" {
+  description = "Whether to create certificate validation resources"
+  type        = bool
+  default     = true
+}

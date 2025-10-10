@@ -27,17 +27,17 @@ output "production_labware_library_bucket_arn" {
 
 output "production_cloudfront_domain" {
   description = "Production CloudFront distribution domain"
-  value       = module.cloudfront_distribution.distribution_domain_name
+  value       = module.docs_cloudfront_distribution.distribution_domain_name
 }
 
 output "production_cloudfront_id" {
   description = "Production CloudFront distribution ID"
-  value       = module.cloudfront_distribution.distribution_id
+  value       = module.docs_cloudfront_distribution.distribution_id
 }
 
 output "production_cloudfront_arn" {
   description = "Production CloudFront distribution ARN"
-  value       = module.cloudfront_distribution.distribution_arn
+  value       = module.docs_cloudfront_distribution.distribution_arn
 }
 
 output "production_deployment_url" {
@@ -47,7 +47,7 @@ output "production_deployment_url" {
 
 output "production_origin_access_control_id" {
   description = "Production CloudFront origin access control ID"
-  value       = module.cloudfront_distribution.origin_access_control_id
+  value       = module.docs_cloudfront_distribution.origin_access_control_id
 }
 
 output "production_mkdocs_certificate_arn" {
@@ -103,4 +103,49 @@ output "production_labware_library_deployment_url" {
 output "production_labware_library_origin_access_control_id" {
   description = "Production labware library CloudFront origin access control ID"
   value       = module.labware_library_cloudfront_distribution.origin_access_control_id
+}
+
+output "production_protocol_designer_bucket_name" {
+  description = "Production protocol designer bucket name"
+  value       = module.protocol_designer_bucket.bucket_name
+}
+
+output "production_protocol_designer_bucket_arn" {
+  description = "Production protocol designer bucket ARN"
+  value       = module.protocol_designer_bucket.bucket_arn
+}
+
+output "production_protocol_designer_cloudfront_domain" {
+  description = "Production protocol designer CloudFront distribution domain"
+  value       = module.protocol_designer_cloudfront_distribution.distribution_domain_name
+}
+
+output "production_protocol_designer_cloudfront_id" {
+  description = "Production protocol designer CloudFront distribution ID"
+  value       = module.protocol_designer_cloudfront_distribution.distribution_id
+}
+
+output "production_protocol_designer_cloudfront_arn" {
+  description = "Production protocol designer CloudFront distribution ARN"
+  value       = module.protocol_designer_cloudfront_distribution.distribution_arn
+}
+
+output "production_protocol_designer_deployment_url" {
+  description = "Production protocol designer deployment URL"
+  value       = "https://${var.protocol_designer_domain_name}/"
+}
+
+output "production_protocol_designer_certificate_arn" {
+  description = "Production protocol designer ACM certificate ARN"
+  value       = module.protocol_designer_certificate.certificate_arn
+}
+
+output "production_protocol_designer_zone_id" {
+  description = "Production protocol designer hosted zone ID"
+  value       = aws_route53_zone.protocol_designer.zone_id
+}
+
+output "production_protocol_designer_nameservers" {
+  description = "Production protocol designer nameservers for delegation"
+  value       = aws_route53_zone.protocol_designer.name_servers
 }

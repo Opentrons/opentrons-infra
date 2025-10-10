@@ -226,3 +226,9 @@ variable "origin_access_control_description" {
   type        = string
   default     = null
 }
+
+variable "create_s3_bucket_policy" {
+  description = "Whether to create the S3 bucket policy for CloudFront access"
+  type        = bool
+  default     = true
+}

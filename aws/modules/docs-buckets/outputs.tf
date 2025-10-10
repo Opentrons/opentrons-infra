@@ -2,12 +2,12 @@
 
 output "bucket_name" {
   description = "Name of the documentation bucket"
-  value       = aws_s3_bucket.docs.bucket
+  value       = aws_s3_bucket.bucket.bucket
 }
 
 output "bucket_arn" {
   description = "ARN of the documentation bucket"
-  value       = aws_s3_bucket.docs.arn
+  value       = aws_s3_bucket.bucket.arn
 }
 
 

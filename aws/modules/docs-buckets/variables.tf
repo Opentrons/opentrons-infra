@@ -5,6 +5,12 @@ variable "bucket_name" {
   type        = string
 }
 
+variable "resource_name" {
+  description = "Name for the Terraform resource (used for resource naming)"
+  type        = string
+  default     = "docs"
+}
+
 variable "aws_region" {
   description = "AWS region where the buckets will be created"
   type        = string
