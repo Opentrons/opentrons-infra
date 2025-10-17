@@ -54,6 +54,18 @@ variable "protocol_designer_bucket_name" {
   default     = "opentrons.sandbox.designer"
 }
 
+variable "components_domain_name" {
+  description = "Domain name for the components site"
+  type        = string
+  default     = "sandbox.components.opentrons.com"
+}
+
+variable "components_bucket_name" {
+  description = "S3 bucket name for components"
+  type        = string
+  default     = "opentrons.sandbox.components"
+}
+
 variable "enable_versioning" {
   description = "Enable S3 bucket versioning"
   type        = bool
