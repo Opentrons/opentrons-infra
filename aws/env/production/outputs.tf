@@ -149,3 +149,18 @@ output "production_protocol_designer_nameservers" {
   description = "Production protocol designer nameservers for delegation"
   value       = aws_route53_zone.protocol_designer.name_servers
 }
+
+output "production_components_certificate_arn" {
+  description = "Production components ACM certificate ARN"
+  value       = module.components_certificate.certificate_arn
+}
+
+output "production_components_zone_id" {
+  description = "Production components hosted zone ID"
+  value       = aws_route53_zone.components.zone_id
+}
+
+output "production_components_nameservers" {
+  description = "Production components nameservers for delegation"
+  value       = aws_route53_zone.components.name_servers
+}

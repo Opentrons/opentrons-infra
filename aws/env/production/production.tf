@@ -79,6 +79,16 @@ resource "aws_route53_zone" "protocol_designer" {
   })
 }
 
+# Hosted Zone for Components (delegated subdomain)
+resource "aws_route53_zone" "components" {
+  name = var.components_domain_name
+  
+  tags = merge(local.common_tags, {
+    Name = "components-zone"
+    Project = "opentrons-components"
+  })
+}
+
 # ACM Certificate for Protocol Designer
 module "protocol_designer_certificate" {
   source = "../../modules/acm-certificate"
@@ -99,6 +109,28 @@ module "protocol_designer_certificate" {
   }
   
   depends_on = [aws_route53_zone.protocol_designer]
+}
+
+# ACM Certificate for Components
+module "components_certificate" {
+  source = "../../modules/acm-certificate"
+
+  environment    = var.environment
+  domain_name    = var.components_domain_name
+  subject_alternative_names = ["*.components.opentrons.com", "www.components.opentrons.com"]
+  route53_zone_id = aws_route53_zone.components.zone_id
+  create_validation = false  # Disable validation for existing certificate
+  tags = {
+    Environment = "prod"
+    Name = "components.opentrons.com"
+    ou = "robotics"
+  }
+  
+  providers = {
+    aws = aws.us_east_1
+  }
+  
+  depends_on = [aws_route53_zone.components]
 }
 
 
