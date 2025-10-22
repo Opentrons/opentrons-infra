@@ -308,6 +308,56 @@ module "protocol_designer_cloudfront_distribution" {
   depends_on = [module.protocol_designer_bucket]
 }
 
+# Provider for us-east-1 (required for CloudFront certificates)
+provider "aws" {
+  alias  = "us_east_1"
+  region = "us-east-1"
+  profile = var.aws_profile
+}
+
+# ACM Certificate for Components (must be in us-east-1 for CloudFront)
+resource "aws_acm_certificate" "components_cert" {
+  provider = aws.us_east_1
+  
+  domain_name       = var.components_domain_name
+  validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = merge(local.common_tags, {
+    Name    = "${var.environment}-components-cert"
+    Project = "opentrons-components"
+  })
+}
+
+# Certificate validation records
+resource "aws_route53_record" "components_cert_validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.components_cert.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = data.aws_route53_zone.components.zone_id
+}
+
+# Certificate validation
+resource "aws_acm_certificate_validation" "components_cert" {
+  provider = aws.us_east_1
+  
+  certificate_arn         = aws_acm_certificate.components_cert.arn
+  validation_record_fqdns = [for record in aws_route53_record.components_cert_validation : record.fqdn]
+}
+
 # CloudFront Distribution for Components using the cloudfront-distribution module
 module "components_cloudfront_distribution" {
   source = "../../modules/cloudfront-distribution"
@@ -319,7 +369,7 @@ module "components_cloudfront_distribution" {
   comment                  = "Sandbox components distribution"
   default_root_object      = "index.html"
   price_class              = "PriceClass_100"  # Use only North America and Europe
-  # No aliases - use default CloudFront domain
+  aliases                  = [var.components_domain_name]
   
   origin_domain_name       = "${var.components_bucket_name}.s3.${var.aws_region}.amazonaws.com"
   origin_id                = "${var.components_bucket_name}-origin"
@@ -360,8 +410,9 @@ module "components_cloudfront_distribution" {
   geo_restriction_type     = "none"
   geo_restriction_locations = []
   
-  # SSL/TLS configuration - use default CloudFront certificate
-  use_default_certificate  = true
+  # SSL/TLS configuration - use custom ACM certificate
+  use_default_certificate  = false
+  acm_certificate_arn      = aws_acm_certificate_validation.components_cert.certificate_arn
   ssl_support_method       = "sni-only"
   minimum_protocol_version = "TLSv1.2_2021"
   
@@ -372,7 +423,7 @@ module "components_cloudfront_distribution" {
     Name = "sandbox-components"
   })
   
-  depends_on = [module.components_bucket]
+  depends_on = [module.components_bucket, aws_acm_certificate_validation.components_cert]
 }
 
 # DNS Records for sandbox subdomains
