@@ -76,11 +76,6 @@ module "labware_certificate" {
 # Data source to reference the main designer zone from production
 data "aws_route53_zone" "protocol_designer" {
   name = "designer.opentrons.com"
-  
-  tags = {
-    Environment = "production"
-    Project     = "opentrons-protocol-designer"
-  }
 }
 
 # ACM Certificate for Protocol Designer
@@ -90,6 +85,7 @@ module "protocol_designer_certificate" {
   environment    = var.environment
   domain_name    = var.protocol_designer_domain_name
   route53_zone_id = data.aws_route53_zone.protocol_designer.zone_id
+  create_validation = false  # Disable validation for existing certificate
   tags = merge(local.common_tags, {
     Project = "opentrons-protocol-designer"
   })
