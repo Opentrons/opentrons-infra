@@ -329,7 +329,7 @@ module "protocol_designer_cloudfront_distribution" {
   comment                  = "Production protocol designer distribution"
   default_root_object      = "index.html"
   price_class              = "PriceClass_100"  # Use only North America and Europe
-  # No aliases - use default CloudFront domain
+  aliases                  = [var.protocol_designer_domain_name]
   
   origin_domain_name       = "${var.protocol_designer_bucket_name}.s3.${var.aws_region}.amazonaws.com"
   origin_id                = "${var.protocol_designer_bucket_name}-origin"

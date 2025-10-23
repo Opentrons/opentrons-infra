@@ -76,30 +76,26 @@ module "labware_certificate" {
 # Data source to reference the main designer zone from production
 data "aws_route53_zone" "protocol_designer" {
   name = "designer.opentrons.com"
-  
-  tags = {
-    Environment = "production"
-    Project     = "opentrons-protocol-designer"
-  }
 }
 
 # ACM Certificate for Protocol Designer
-# module "protocol_designer_certificate" {
-#   source = "../../modules/acm-certificate"
-# 
-#   environment    = var.environment
-#   domain_name    = var.protocol_designer_domain_name
-#   route53_zone_id = data.aws_route53_zone.protocol_designer.zone_id
-#   tags = merge(local.common_tags, {
-#     Project = "opentrons-protocol-designer"
-#   })
-#   
-#   providers = {
-#     aws = aws.us_east_1
-#   }
-#   
-#   depends_on = [data.aws_route53_zone.protocol_designer]
-# }
+module "protocol_designer_certificate" {
+  source = "../../modules/acm-certificate"
+
+  environment    = var.environment
+  domain_name    = var.protocol_designer_domain_name
+  route53_zone_id = data.aws_route53_zone.protocol_designer.zone_id
+  create_validation = false  # Disable validation for existing certificate
+  tags = merge(local.common_tags, {
+    Project = "opentrons-protocol-designer"
+  })
+  
+  providers = {
+    aws = aws.us_east_1
+  }
+  
+  depends_on = [data.aws_route53_zone.protocol_designer]
+}
 
 # S3 Bucket using the docs-buckets module
 module "docs_bucket" {
@@ -303,6 +299,7 @@ module "protocol_designer_cloudfront_distribution" {
   comment                  = "Staging protocol designer distribution"
   default_root_object      = "index.html"
   price_class              = "PriceClass_100"  # Use only North America and Europe
+  aliases                  = [var.protocol_designer_domain_name]
   
   # Origin configuration
   origin_domain_name       = "${var.protocol_designer_bucket_name}.s3.${var.aws_region}.amazonaws.com"
@@ -347,10 +344,10 @@ module "protocol_designer_cloudfront_distribution" {
   geo_restriction_locations = []
   
   # SSL/TLS configuration
-  use_default_certificate  = true
-  # acm_certificate_arn      = module.protocol_designer_certificate.certificate_arn
-  ssl_support_method       = "vip"
-  minimum_protocol_version = "TLSv1"
+  use_default_certificate  = false
+  acm_certificate_arn      = module.protocol_designer_certificate.certificate_arn
+  ssl_support_method       = "sni-only"
+  minimum_protocol_version = "TLSv1.2_2021"
   
   # WAF configuration (not configured for staging)
   web_acl_id = var.web_acl_id
@@ -362,7 +359,7 @@ module "protocol_designer_cloudfront_distribution" {
     Name = "staging.designer.opentrons.com"
   })
   
-  depends_on = [module.protocol_designer_bucket, data.aws_route53_zone.protocol_designer]
+  depends_on = [module.protocol_designer_bucket, module.protocol_designer_certificate, data.aws_route53_zone.protocol_designer]
 }
 
 # DNS Records for staging subdomains
