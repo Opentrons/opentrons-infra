@@ -252,7 +252,7 @@ module "protocol_designer_cloudfront_distribution" {
   comment                  = "Sandbox protocol designer distribution"
   default_root_object      = "index.html"
   price_class              = "PriceClass_100"  # Use only North America and Europe
-  # No aliases - use default CloudFront domain
+  aliases                  = [var.protocol_designer_domain_name]
   
   origin_domain_name       = "${var.protocol_designer_bucket_name}.s3.${var.aws_region}.amazonaws.com"
   origin_id                = "${var.protocol_designer_bucket_name}-origin"
@@ -293,8 +293,9 @@ module "protocol_designer_cloudfront_distribution" {
   geo_restriction_type     = "none"
   geo_restriction_locations = []
   
-  # SSL/TLS configuration - use default CloudFront certificate
-  use_default_certificate  = true
+  # SSL/TLS configuration - use existing ACM certificate
+  use_default_certificate  = false
+  acm_certificate_arn      = "arn:aws:acm:us-east-1:043748923082:certificate/65836a63-64b5-4b9a-8895-ca2a079d5f72"
   ssl_support_method       = "sni-only"
   minimum_protocol_version = "TLSv1.2_2021"
   
