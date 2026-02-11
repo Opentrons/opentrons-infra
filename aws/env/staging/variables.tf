@@ -60,6 +60,18 @@ variable "protocol_designer_bucket_name" {
   default     = "opentrons.staging.designer"
 }
 
+variable "ot2_protocol_designer_bucket_name" {
+  description = "S3 bucket name for ot2 protocol designer (separate infra)"
+  type        = string
+  default     = "opentrons.staging.designer.ot2"
+}
+
+variable "ot2_labware_library_bucket_name" {
+  description = "S3 bucket name for ot2 labware library (separate infra)"
+  type        = string
+  default     = "opentrons.staging.labware.ot2"
+}
+
 variable "enable_versioning" {
   description = "Enable S3 bucket versioning"
   type        = bool

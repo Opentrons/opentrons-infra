@@ -54,6 +54,18 @@ variable "protocol_designer_bucket_name" {
   default     = "opentrons.sandbox.designer"
 }
 
+variable "ot2_protocol_designer_bucket_name" {
+  description = "S3 bucket name for ot2 protocol designer (separate infra)"
+  type        = string
+  default     = "opentrons.sandbox.designer.ot2"
+}
+
+variable "ot2_labware_library_bucket_name" {
+  description = "S3 bucket name for ot2 labware library (separate infra)"
+  type        = string
+  default     = "opentrons.sandbox.labware.ot2"
+}
+
 variable "components_domain_name" {
   description = "Domain name for the components site"
   type        = string
