@@ -73,7 +73,7 @@ module "labware_certificate" {
 }
 
 # Hosted Zone for Protocol Designer (delegated subdomain)
-# Data source to reference the main designer zone from production
+# Data source to reference the shared designer parent zone.
 data "aws_route53_zone" "protocol_designer" {
   name = "designer.opentrons.com"
 }
@@ -180,7 +180,7 @@ module "docs_cloudfront_distribution" {
   function_associations = [
     {
       event_type   = "viewer-request"
-      function_arn = var.cloudfront_function_arn
+      function_arn = var.docs_cloudfront_function_arn
     }
   ]
   
@@ -225,7 +225,7 @@ module "labware_library_cloudfront_distribution" {
   comment                  = "Staging labware library distribution"
   default_root_object      = "index.html"
   price_class              = "PriceClass_100"  # Use only North America and Europe
-  # aliases                  = [var.labware_library_domain_name]  # Temporarily commented out to avoid CNAME conflict
+  aliases                  = [var.labware_library_domain_name]
   
   # Origin configuration
   origin_domain_name       = "${var.labware_library_bucket_name}.s3.${var.aws_region}.amazonaws.com"
