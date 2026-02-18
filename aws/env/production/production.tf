@@ -217,7 +217,7 @@ module "docs_cloudfront_distribution" {
   function_associations = [
     {
       event_type   = "viewer-request"
-      function_arn = var.cloudfront_function_arn
+      function_arn = var.docs_cloudfront_function_arn
     }
   ]
   

@@ -103,6 +103,12 @@ variable "cloudfront_function_arn" {
   default     = "arn:aws:cloudfront::043748923082:function/indexRedirect"
 }
 
+variable "docs_cloudfront_function_arn" {
+  description = "ARN of the CloudFront function for docs viewer-request"
+  type        = string
+  default     = "arn:aws:cloudfront::043748923082:function/docPythonApiRedirect"
+}
+
 variable "acm_certificate_arn" {
   description = "ARN of the ACM certificate for the domain"
   type        = string
