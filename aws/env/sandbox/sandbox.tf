@@ -28,18 +28,18 @@ data "aws_route53_zone" "labware_library" {
 
 data "aws_route53_zone" "protocol_designer" {
   name = "designer.opentrons.com"
-  
+
   tags = {
-    Environment = "production"
+    Environment = "sandbox"
     Project     = "opentrons-protocol-designer"
   }
 }
 
 data "aws_route53_zone" "components" {
   name = "components.opentrons.com"
-  
+
   tags = {
-    Environment = "production"
+    Environment = "sandbox"
     Project     = "opentrons-components"
   }
 }
