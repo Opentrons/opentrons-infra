@@ -14,7 +14,7 @@ module "ot2_protocol_designer_certificate" {
   environment       = var.environment
   domain_name       = local.ot2_protocol_designer_domain
   route53_zone_id   = data.aws_route53_zone.protocol_designer.zone_id
-  create_validation = true
+  create_validation = false
   tags = merge(local.common_tags, {
     Project = "opentrons-protocol-designer"
     Name    = "ot2-protocol-designer-sandbox"
@@ -123,7 +123,7 @@ module "ot2_labware_library_certificate" {
   environment       = var.environment
   domain_name       = local.ot2_labware_library_domain
   route53_zone_id   = data.aws_route53_zone.labware_library.zone_id
-  create_validation = true
+  create_validation = false
   tags = merge(local.common_tags, {
     Project = "opentrons-labware-library"
     Name    = "ot2-labware-library-sandbox"
