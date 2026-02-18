@@ -75,12 +75,7 @@ module "labware_certificate" {
 # Hosted Zone for Protocol Designer (delegated subdomain)
 # Data source to reference the staging designer zone (not production)
 data "aws_route53_zone" "protocol_designer" {
-  name = "designer.opentrons.com"
-
-  tags = {
-    Environment = "staging"
-    Project     = "opentrons-protocol-designer"
-  }
+  name = var.protocol_designer_domain_name
 }
 
 # ACM Certificate for Protocol Designer
