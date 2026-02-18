@@ -44,6 +44,25 @@ data "aws_route53_zone" "components" {
   }
 }
 
+# ACM Certificate for Protocol Designer (sandbox.designer.opentrons.com)
+module "protocol_designer_certificate" {
+  source = "../../modules/acm-certificate"
+
+  environment       = var.environment
+  domain_name       = var.protocol_designer_domain_name
+  route53_zone_id   = data.aws_route53_zone.protocol_designer.zone_id
+  create_validation = false
+  tags = merge(local.common_tags, {
+    Project = "opentrons-protocol-designer"
+  })
+
+  providers = {
+    aws = aws.us_east_1
+  }
+
+  depends_on = [data.aws_route53_zone.protocol_designer]
+}
+
 # S3 Bucket for MkDocs documentation using the docs-buckets module
 module "docs_bucket" {
   source = "../../modules/docs-buckets"
@@ -295,7 +314,7 @@ module "protocol_designer_cloudfront_distribution" {
   
   # SSL/TLS configuration - use existing ACM certificate
   use_default_certificate  = false
-  acm_certificate_arn      = "arn:aws:acm:us-east-1:043748923082:certificate/65836a63-64b5-4b9a-8895-ca2a079d5f72"
+  acm_certificate_arn      = module.protocol_designer_certificate.certificate_arn
   ssl_support_method       = "sni-only"
   minimum_protocol_version = "TLSv1.2_2021"
   
@@ -306,7 +325,7 @@ module "protocol_designer_cloudfront_distribution" {
     Name = "sandbox-designer"
   })
   
-  depends_on = [module.protocol_designer_bucket]
+  depends_on = [module.protocol_designer_bucket, module.protocol_designer_certificate]
 }
 
 # Provider for us-east-1 (required for CloudFront certificates)
