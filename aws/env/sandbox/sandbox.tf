@@ -27,7 +27,7 @@ data "aws_route53_zone" "labware_library" {
 }
 
 data "aws_route53_zone" "protocol_designer" {
-  name = var.protocol_designer_domain_name
+  name = "designer.opentrons.com"
 }
 
 data "aws_route53_zone" "components" {
