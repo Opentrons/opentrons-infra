@@ -60,6 +60,13 @@ variable "protocol_designer_bucket_name" {
   default     = "opentrons.production.designer"
 }
 
+variable "ot2_protocol_designer_bucket_name" {
+  description = "S3 bucket name for ot2 protocol designer (separate infra)"
+  type        = string
+  default     = "opentrons.production.designer.ot2"
+}
+
+
 variable "components_domain_name" {
   description = "Domain name for the components site"
   type        = string

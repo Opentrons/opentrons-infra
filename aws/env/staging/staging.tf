@@ -73,7 +73,7 @@ module "labware_certificate" {
 }
 
 # Hosted Zone for Protocol Designer (delegated subdomain)
-# Data source to reference the main designer zone from production
+# Data source to reference the shared designer parent zone.
 data "aws_route53_zone" "protocol_designer" {
   name = "designer.opentrons.com"
 }
