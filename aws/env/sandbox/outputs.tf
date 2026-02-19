@@ -114,3 +114,8 @@ output "sandbox_components_cloudfront_url" {
   description = "Sandbox components CloudFront URL"
   value       = "https://${module.components_cloudfront_distribution.distribution_domain_name}"
 }
+
+output "ot2_pd_deploy_oidc_role_arn" {
+  description = "OIDC IAM role ARN for OT2 Protocol Designer sandbox deploys"
+  value       = aws_iam_role.githubuser_ot2_role_sandbox_default.arn
+}

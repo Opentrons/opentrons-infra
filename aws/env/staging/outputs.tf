@@ -119,3 +119,8 @@ output "staging_protocol_designer_nameservers" {
   description = "Staging protocol designer nameservers for delegation"
   value       = data.aws_route53_zone.protocol_designer.name_servers
 }
+
+output "ot2_pd_deploy_oidc_role_arn" {
+  description = "OIDC IAM role ARN for OT2 Protocol Designer staging deploys"
+  value       = aws_iam_role.githubuser_ot2_role_staging_default.arn
+}

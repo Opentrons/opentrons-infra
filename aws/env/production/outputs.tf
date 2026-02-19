@@ -164,3 +164,8 @@ output "production_components_nameservers" {
   description = "Production components nameservers for delegation"
   value       = aws_route53_zone.components.name_servers
 }
+
+output "ot2_pd_deploy_oidc_role_arn" {
+  description = "OIDC IAM role ARN for OT2 Protocol Designer production deploys"
+  value       = aws_iam_role.githubuser_ot2_role_production_default.arn
+}
