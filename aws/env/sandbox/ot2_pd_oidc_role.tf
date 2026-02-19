@@ -42,7 +42,7 @@ resource "aws_iam_role_policy" "githubuser_ot2_role_sandbox_default_policy" {
           "s3:ListBucket",
           "s3:GetBucketLocation"
         ]
-        Resource = [module.protocol_designer_bucket.bucket_arn]
+        Resource = [module.ot2_protocol_designer_bucket.bucket_arn]
       },
       {
         Sid    = "AllowObjectLevelOpsForSandboxOt2PdBucket"
@@ -53,7 +53,7 @@ resource "aws_iam_role_policy" "githubuser_ot2_role_sandbox_default_policy" {
           "s3:DeleteObject",
           "s3:AbortMultipartUpload"
         ]
-        Resource = ["${module.protocol_designer_bucket.bucket_arn}/*"]
+        Resource = ["${module.ot2_protocol_designer_bucket.bucket_arn}/*"]
       },
       {
         Sid    = "AllowCloudFrontInvalidationsForSandboxOt2Pd"
@@ -63,7 +63,7 @@ resource "aws_iam_role_policy" "githubuser_ot2_role_sandbox_default_policy" {
           "cloudfront:GetInvalidation",
           "cloudfront:CreateInvalidation"
         ]
-        Resource = [module.protocol_designer_cloudfront_distribution.distribution_arn]
+        Resource = [module.ot2_protocol_designer_cloudfront_distribution.distribution_arn]
       }
     ]
   })
