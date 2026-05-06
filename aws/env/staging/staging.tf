@@ -279,7 +279,7 @@ module "labware_library_cloudfront_distribution" {
   web_acl_id = var.web_acl_id
   
   # S3 bucket policy (disabled - using existing policy)
-  create_s3_bucket_policy = false
+  create_s3_bucket_policy = true
   
   tags = merge(local.common_tags, {
     Name = "staging.labware.opentrons.com"
@@ -353,7 +353,7 @@ module "protocol_designer_cloudfront_distribution" {
   web_acl_id = var.web_acl_id
   
   # S3 bucket policy (disabled - using existing policy)
-  create_s3_bucket_policy = false
+  create_s3_bucket_policy = true
   
   tags = merge(local.common_tags, {
     Name = "staging.designer.opentrons.com"
