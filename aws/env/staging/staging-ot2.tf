@@ -94,7 +94,7 @@ module "ot2_protocol_designer_cloudfront_distribution" {
   ssl_support_method        = "sni-only"
   minimum_protocol_version  = "TLSv1.2_2021"
   web_acl_id                 = var.web_acl_id
-  create_s3_bucket_policy    = false
+  create_s3_bucket_policy    = true
 
   tags = merge(local.common_tags, {
     Name = "ot2.staging.designer.opentrons.com"
